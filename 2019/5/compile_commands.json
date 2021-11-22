@@ -1,8 +1,1 @@
-[
-  {
-    "directory": "/home/isaiah/AOC/2019/2/build",
-    "command": "c++ -Iintcode@exe -I. -I.. -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wnon-virtual-dtor -Wextra -Wpedantic -std=c++14 -g -MD -MQ 'intcode@exe/main.cpp.o' -MF 'intcode@exe/main.cpp.o.d' -o 'intcode@exe/main.cpp.o' -c ../main.cpp",
-    "file": "../main.cpp",
-    "output": "intcode@exe/main.cpp.o"
-  }
-]
+build/compile_commands.json
