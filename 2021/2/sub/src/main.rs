@@ -13,7 +13,7 @@ enum Direction {
 
 struct Command {
     direction: Direction,
-    distance: u32
+    amount: u32
 }
 
 fn main() {
@@ -26,16 +26,21 @@ fn main() {
 
     let mut horizontal: u32 = 0;
     let mut depth: u32 = 0;
+    let mut aim: u32 = 0;
 
     for command in commands {
         match command.direction {
-            Direction::Forward => horizontal += command.distance,
-            Direction::Down => depth += command.distance,
-            Direction::Up => depth -= command.distance,
+            Direction::Forward => {
+                horizontal += command.amount;
+                depth += aim * command.amount;
+            }
+            Direction::Down => aim += command.amount,
+            Direction::Up => aim -= command.amount,
         }
     }
     println!("Horizontal position: {}", horizontal);
     println!("Depth: {}", depth);
+    println!("Aim: {}", aim);
     println!("Answer: {}", horizontal * depth);
 }
 
@@ -58,7 +63,7 @@ fn create_commands(lines: Vec<String>) -> Vec<Command> {
                 "up" => Direction::Up,
                 _ => panic!("Failed to parse direction")
             },
-            distance: split.next().unwrap().parse::<u32>().expect("Failed to parse distance")
+            amount: split.next().unwrap().parse::<u32>().expect("Failed to parse amount")
         })
     }
     commands
