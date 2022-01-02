@@ -23,12 +23,7 @@ fn plot_vents(sea_floor: &mut HashMap<(u32, u32), u32>, vent: &String) {
 
     println!("{}", vent);
 
-    if start[0] != stop[0] && start[1] != stop[1] {
-        println!("Skipping!");
-        return;
-    }
-
-    while start[0] != stop[0] {
+    while start[0] != stop[0] || start[1] != stop[1] {
         *sea_floor.entry((start[0], start[1])).or_insert(0) += 1;
         println!(
             "({},{}) = {}",
@@ -38,25 +33,16 @@ fn plot_vents(sea_floor: &mut HashMap<(u32, u32), u32>, vent: &String) {
             );
         if start[0] < stop[0] {
             start[0] += 1;
-        } else {
+        } else if start[0] > stop[0] {
             start[0] -= 1;
         }
-    }
-
-    while start[1] != stop[1] {
-        *sea_floor.entry((start[0], start[1])).or_insert(0) += 1;
-        println!(
-            "({},{}) = {}",
-            start[0],
-            start[1],
-            sea_floor[&(start[0],start[1])]
-            );
         if start[1] < stop[1] {
             start[1] += 1;
-        } else {
+        } else if start[1] > stop[1] {
             start[1] -= 1;
         }
     }
+
     *sea_floor.entry((stop[0], stop[1])).or_insert(0) += 1;
     println!(
         "({},{}) = {}",
