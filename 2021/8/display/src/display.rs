@@ -1,6 +1,4 @@
-mod digit;
-
-use crate::display::digit::Digit;
+use crate::digit::Digit;
 use std::fmt;
 
 #[derive(Debug)]

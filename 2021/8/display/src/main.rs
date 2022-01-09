@@ -1,4 +1,6 @@
 mod display;
+mod digit;
+
 use crate::display::Display;
 
 fn main() {
