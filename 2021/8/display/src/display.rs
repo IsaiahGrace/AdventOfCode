@@ -1,9 +1,9 @@
-use crate::digit::Digit;
+use crate::hex_digit::HexDigit;
 use std::fmt;
 
 #[derive(Debug)]
 pub struct Display {
-    digits: Vec<Digit>,
+    digits: Vec<HexDigit>,
 }
 
 impl Display {
@@ -13,8 +13,9 @@ impl Display {
         }
     }
 
-    pub fn push(&mut self, digit: i8) {
-        self.digits.push(Digit::new(digit % 10));
+    pub fn push(&mut self, digit: i32) {
+        assert!(digit < 16, "Display cannot take digits larger than 15 (F)");
+        self.digits.push(HexDigit::new(digit));
     }
 }
 

@@ -1,3 +1,4 @@
+use crate::segment::Segment;
 use std::collections::HashSet;
 
 /* These are the Segment semantics
@@ -27,26 +28,25 @@ e    f
      █  █    █       █  █    █       █
  ████    ████            ████    ████
 
+  A:      B:      C:      D:      E:      F:
+ ████            ████            ████    ████
+█    █  █       █            █  █       █
+█    █  █       █            █  █       █
+ ████    ████            ████    ████    ████
+█    █  █    █  █       █    █  █       █
+█    █  █    █  █       █    █  █       █
+         ████    ████    ████    ████
+
 */
 
-#[derive(Debug, PartialEq, Eq, Hash)]
-enum Segment {
-    A,
-    B,
-    C,
-    D,
-    E,
-    F,
-    G
-}
 
 #[derive(Debug)]
-pub struct Digit {
+pub struct HexDigit {
     segments: HashSet<Segment>,
 }
 
-impl Digit {
-    pub fn new(digit: i8) -> Digit {
+impl HexDigit {
+    pub fn new(digit: i32) -> HexDigit {
         let mut segments: HashSet<Segment> = HashSet::new();
         match digit {
             0 => {
@@ -118,9 +118,50 @@ impl Digit {
                 segments.insert(Segment::F);
                 segments.insert(Segment::G);
             }
+            0xA => {
+                segments.insert(Segment::A);
+                segments.insert(Segment::B);
+                segments.insert(Segment::C);
+                segments.insert(Segment::D);
+                segments.insert(Segment::E);
+                segments.insert(Segment::F);
+            }
+            0xB => {
+                segments.insert(Segment::B);
+                segments.insert(Segment::D);
+                segments.insert(Segment::E);
+                segments.insert(Segment::F);
+                segments.insert(Segment::G);
+            }
+            0xC => {
+                segments.insert(Segment::A);
+                segments.insert(Segment::B);
+                segments.insert(Segment::E);
+                segments.insert(Segment::G);
+            }
+            0xD => {
+                segments.insert(Segment::C);
+                segments.insert(Segment::D);
+                segments.insert(Segment::E);
+                segments.insert(Segment::F);
+                segments.insert(Segment::G);
+            }
+            0xE => {
+                segments.insert(Segment::A);
+                segments.insert(Segment::B);
+                segments.insert(Segment::D);
+                segments.insert(Segment::E);
+                segments.insert(Segment::G);
+            }
+            0xF => {
+                segments.insert(Segment::A);
+                segments.insert(Segment::B);
+                segments.insert(Segment::D);
+                segments.insert(Segment::E);
+            }
             _ => {}
         }
-        Digit {
+        HexDigit {
             segments: segments,
         }
     }
