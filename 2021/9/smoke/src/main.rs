@@ -1,8 +1,8 @@
 //mod mapper;
-mod sea_map;
+mod sea_floor;
 
 //use crate::mapper::Mapper;
-use crate::sea_map::SeaMap;
+use crate::sea_floor::SeaFloor;
 
 use std::env;
 use std::fs::File;
@@ -22,8 +22,8 @@ fn main() {
     }
 
     let input = read_input_file(&args[1]);
-    
-    let map: SeaMap = SeaMap::new(input);
 
-    println!("{:?}", map); 
+    let map = SeaFloor::new(input);
+
+    println!("{}", map);
 }
