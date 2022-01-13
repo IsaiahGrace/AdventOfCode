@@ -1,7 +1,5 @@
-//mod mapper;
 mod sea_floor;
 
-//use crate::mapper::Mapper;
 use crate::sea_floor::SeaFloor;
 
 use std::env;
@@ -26,4 +24,6 @@ fn main() {
     let map = SeaFloor::new(input);
 
     println!("{}", map);
+
+    map.plot();
 }
