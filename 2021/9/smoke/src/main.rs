@@ -21,9 +21,10 @@ fn main() {
 
     let input = read_input_file(&args[1]);
 
-    let map = SeaFloor::new(input);
+    let mut map = SeaFloor::new(input);
 
-    println!("{}", map);
-
-    map.plot();
+    //println!("{}", map);
+    //map.plot();
+    //map.explore(0,0);
+    map.explore_all();
 }

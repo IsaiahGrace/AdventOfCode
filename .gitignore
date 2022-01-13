@@ -2,3 +2,6 @@ build
 target
 .clangd
 *~
+*.png
+*.gif
+
