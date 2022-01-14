@@ -1,23 +1,25 @@
-use plotters::coord::Shift;
-use std::collections::HashSet;
 use std::fmt;
+use std::collections::HashMap;
+use std::collections::HashSet;
 use colored::*;
-use plotters::prelude::*;
-use plotters::style::Color;
+use itertools::Itertools;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
 use palette::{Gradient, LinSrgb};
+use plotters::prelude::*;
+use plotters::coord::Shift;
+use plotters::style::Color;
 
-// Is this overkill for the puzzle? Yeah. Do I care? No!
-// It's a good time to learn lifetimes, and to actually use Option
 #[derive(Debug)]
 struct Point {
 	height: u32,
 	visited: bool,
+	basin: Option<(usize, usize)>,
 }
 
 pub struct SeaFloor<'a> {
 	minima: HashSet<(usize,usize)>,
+	basins: HashMap<(usize,usize),u32>,
 	grid: Vec<Vec<Point>>,
 	frame: u32,
 	colors: Vec<(f32,f32,f32)>,
@@ -36,6 +38,7 @@ impl<'a> SeaFloor<'a> {
 				grid.last_mut().unwrap().push( Point {
 					height: c.to_digit(10).unwrap(),
 					visited: false,
+					basin: None,
 				});
 			}
 		}
@@ -53,6 +56,7 @@ impl<'a> SeaFloor<'a> {
 
 		SeaFloor {
 			minima: HashSet::new(),
+			basins: HashMap::new(),
 			grid: grid,
 			frame: 0,
 			colors: colors,
@@ -60,6 +64,18 @@ impl<'a> SeaFloor<'a> {
 			bs: bs,
 			img_size: img_size,
 		}
+	}
+
+	pub fn pt1_answer(&self) -> u32 {
+		let mut risk: u32 = 0;
+		for minimum in &self.minima {
+			risk += self.get_height(minimum.0, minimum.1) + 1;
+		}
+		risk
+	}
+
+	pub fn pt2_answer(&self) -> u32 {
+		self.basins.values().sorted().rev().take(3).copied().reduce(|a, b| a * b).unwrap()
 	}
 
 	fn get_height(&self, x: usize, y: usize) -> u32 {
@@ -76,62 +92,108 @@ impl<'a> SeaFloor<'a> {
 		let y_val: Vec<usize> = (0..self.grid.len()).collect();
 		let x_val: Vec<usize> = (0..self.grid[0].len()).collect();
 		let mut point_order: Vec<(usize,usize)> = vec![];
-		for x in &x_val {
-			for y in &y_val {
+		for y in &y_val {
+			for x in &x_val {
 				point_order.push((*x,*y));
 			}
 		}
-		point_order.shuffle(&mut thread_rng());
+		//point_order.shuffle(&mut thread_rng());
+
+		self.plot();
+		println!("{}", self);
 
 		for (x,y) in point_order {
-			println!("({},{})", x,y);
 			self.explore(x,y);
+		}
+		self.plot();
+		println!("{}", self);
+	}
+
+	pub fn explore_spiral(&mut self) {
+		// Let's see how it looks to expore the sea floor starting from the center and working our way out.
+		// https://stackoverflow.com/questions/33684970/print-2-d-array-in-clockwise-expanding-spiral-from-center
+		let mut x; // current position; x
+		let mut y; // current position; y
+		let mut d = 0; // current direction; 0=RIGHT, 1=DOWN, 2=LEFT, 3=UP
+		let mut s = 1; // chain size
+
+		let size = if self.grid.len() > self.grid[0].len() { self.grid.len() } else { self.grid[0].len() };
+		
+		// starting point
+		x = size / 2;
+		y = size / 2;
+
+		let mut k = 0;
+		while k <= size {
+			let mut j = 0;
+			while j < ( if k < size {2} else {3}) {
+				let mut i = 0;
+				while i < s {
+					self.explore(x,y);
+					match d {
+						0 => { y += 1 }
+						1 => { x += 1 }
+						2 => { y -= 1 }
+						3 => { x -= 1 }
+						_ => { panic!() }
+					}
+					i += 1;
+				}
+				d = (d + 1) % 4;
+				j += 1;
+			}
+			s += 1;
+			k += 1;
 		}
 	}
 
-	pub fn explore(&mut self, x: usize, y: usize) {
+	pub fn explore(&mut self, x: usize, y: usize) -> Option<(usize,usize)> {
 		if y >= self.grid.len() {
-			return;
+			return None;
 		}
 		if x >= self.grid[y].len() {
-			return;
+			return None;
 		}
 		if self.grid[y][x].visited {
-			return;
+			return self.grid[y][x].basin;
 		}
 
 		self.grid[y][x].visited = true;
-		//println!("{}", self);
-		println!("({},{})",x,y);
-		self.plot();
 
 		// Recurse!
 		let height = self.grid[y][x].height;
 
-		if height > self.get_height(x + 1, y) {
-			self.explore(x + 1, y);
-			return
-		}
-		if x > 0 && height > self.get_height(x - 1, y) {
-			self.explore(x - 1, y);
-			return
-		}
-		if height > self.get_height(x, y + 1) {
-			self.explore(x, y + 1);
-			return
-		}
-		if y > 0 && height > self.get_height(x, y - 1) {
-			self.explore(x, y - 1);
-			return
+		let basin;
+		if self.grid[y][x].height == 9 {
+			basin = None;
+		} else if height > self.get_height(x + 1, y) {
+			basin = self.explore(x + 1, y);
+		} else if x > 0 && height > self.get_height(x - 1, y) {
+			basin = self.explore(x - 1, y);
+		} else if height > self.get_height(x, y + 1) {
+			basin = self.explore(x, y + 1);
+		} else if y > 0 && height > self.get_height(x, y - 1) {
+			basin = self.explore(x, y - 1);
+		} else {
+			// Base case: This point is a local minimum.
+			self.minima.insert((x,y));
+			basin = Some((x,y));
+			println!("{}", self);
+			self.plot();
 		}
 
-		// Base case: This point is a local minimum
-		self.minima.insert((x,y));
+		// This point is in a basin, add one to the basin count.
+		if basin.is_some() {
+			self.grid[y][x].basin = basin;
+			*self.basins.entry(basin.unwrap()).or_insert(0) += 1;
+		}
+
+		basin
 	}
 
 	pub fn plot(&mut self) {
-		//let name = format!("{}.png", self.frame);
-		//let image = BitMapBackend::new(&name, self.img_size).into_drawing_area();
+		let name = format!("{}.png", self.frame);
+		let image = BitMapBackend::new(&name, self.img_size).into_drawing_area();
 
 		for (y_idx, row) in self.grid.iter().enumerate() {
 			for (x_idx, point) in row.iter().enumerate() {
@@ -167,14 +229,14 @@ impl<'a> SeaFloor<'a> {
 				let lower_right = (x + self.bs as i32, y + self.bs as i32);
 				let rect = Rectangle::new([upper_left, lower_right], style);
 
-				//image.draw(&rect).unwrap();
+				image.draw(&rect).unwrap();
 
 				self.gif.draw(&rect).unwrap();
 			}
 		}
 		self.frame += 1;
 		self.gif.present().unwrap();
-    }
+	}
 }
 
 impl fmt::Display for SeaFloor<'_> {

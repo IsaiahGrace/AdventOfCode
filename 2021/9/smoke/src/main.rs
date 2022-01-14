@@ -23,8 +23,11 @@ fn main() {
 
     let mut map = SeaFloor::new(input);
 
-    //println!("{}", map);
-    //map.plot();
-    //map.explore(0,0);
-    map.explore_all();
+    //map.explore_all();
+    map.explore_spiral();
+
+    map.plot();
+
+    println!("Part 1 answer: {}", map.pt1_answer());
+    println!("Part 2 answer: {}", map.pt2_answer());
 }
