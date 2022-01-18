@@ -1,6 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+typedef struct {
+	int pt1;
+	int pt2;
+} score_t;
+
 char *read_file(char* file_path) {
 	FILE *fp = fopen(file_path,"r");
 	char *buffer = NULL;
@@ -68,19 +73,29 @@ int pop(char* position, char expected_opener) {
 	return (opener == expected_opener);
 }
 
-int pt1_answer(char *buffer) {
+score_t solve(char *buffer) {
+	score_t score;
+	score.pt1 = 0;
+	score.pt2 = 0;
+
 	if (buffer == NULL) {
 		printf("Error, pt1_answer was given an input struct with a NULL pointer.\n");
-		return 0;
+		return score;
 	}
 
 	// Start at the begining
 	char *position = buffer;
 
-	int score = 0;
+	// For part 2, we'll use the buffer to store an array of scores.
+	// We'll use a linked list to strore the scores so we can use a running insertion sort without performing many swaps.
+	// I think that for the linked list implementation, I'll try to malloc a bunch of space all at once, so we can avoid calling malloc for every new node created. 
+
+	int corrupt;
 
 	// Loop over all lines
 	while (*position != '\0') {
+
+		corrupt = 0;
 
 		// Loop over characters in the lines
 		while (*position != '\n') {
@@ -92,33 +107,32 @@ int pt1_answer(char *buffer) {
 			switch (*position) {
 				case ')': {
 					if (!pop(position, '(')) {
-						score += 3;
-						//printf(" Corrupted line! Unexpected ).");
-						// Fast forward to the end of the line
+						corrupt = 1;
+						score.pt1 += 3;
 						while (*(position + 1) != '\n') position++;
 					}
 					break;
 				}
 				case ']': {
 					if (!pop(position, '[')) {
-						score += 57;
-						//printf(" Corrupted line! Unexpected ].");
+						corrupt = 1;
+						score.pt1 += 57;
 						while (*(position + 1) != '\n') position++;
 					}
 					break;
 				}
 				case '}': {
 					if (!pop(position, '{')) {
-						//printf(" Corrupted line! Unexpected }.");
-						score += 1197;
+						corrupt = 1;
+						score.pt1 += 1197;
 						while (*(position + 1) != '\n') position++;
 					}
 					break;
 				}
 				case '>': {
 					if (!pop(position, '<')) {
-						//printf(" Corrupted line! Unexpected >.");
-						score += 25137;
+						corrupt = 1;
+						score.pt1 += 25137;
 						while (*(position + 1) != '\n') position++;
 					}
 					break;
@@ -126,15 +140,20 @@ int pt1_answer(char *buffer) {
 			}
 			position++;
 		}
+		// We are at the end of the line.
+		// If the line is not corrupt, then we can autocomplete it:
+		//if (!corrupt) {
+		//	int line_score = autocomplete(position);
+		//}
 		position++;
 		//printf("\n");
 	}
 
 	// We'll unset the highest bits in the buffer, resetting it.
 	// It would be cool to try to use SIMD instructions here, but we don't know the length of the buffer...
-	while (*buffer != '\0') {
-		*buffer++ &= 0x7F;
-	}
+	//while (*buffer != '\0') {
+	//	*buffer++ &= 0x7F;
+	//}
 
 	return score;
 }
@@ -151,9 +170,8 @@ int main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}
 
-	//printf("%s",input.buffer);
-
-	int pt1 = pt1_answer(buffer);
-	printf("Part 1 score: %d\n", pt1);
-	//printf("%s",buffer);
+	score_t score = solve(buffer);
+	printf("Part 1 score: %d\n", score.pt1);
+	printf("Part 2 score: %d\n", score.pt2);
+	//free(buffer);
 }
