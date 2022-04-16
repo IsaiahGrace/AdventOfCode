@@ -52,7 +52,7 @@ fn flash(row: usize, col: usize, grid: &mut Vec<Vec<Dumbo>>) {
         return;
     }
     if col >= grid[row].len() {
-        return
+        return;
     }
     if grid[row][col].energy < 10 {
         return;
@@ -68,13 +68,13 @@ fn flash(row: usize, col: usize, grid: &mut Vec<Vec<Dumbo>>) {
     let rows: Vec<usize>;
     let cols: Vec<usize>;
 
-    if row > 1 {
+    if row > 0 {
         rows = vec![row - 1, row, row + 1];
     } else {
         rows = vec![row, row + 1];
     }
 
-    if col > 1 {
+    if col > 0 {
         // In the middle somewhere
         cols = vec![col - 1, col, col + 1];
     } else {
@@ -82,12 +82,13 @@ fn flash(row: usize, col: usize, grid: &mut Vec<Vec<Dumbo>>) {
         cols = vec![col, col + 1];
     }
 
-    for y in &rows {
-        if *y >= grid.len() {continue;}
+    for y in rows {
+        if y >= grid.len() {continue;}
         for x in &cols {
-            if *x >= grid[*y].len() {continue;}
-            grid[*y][*x].energy += 1;
-            flash(*y, *x, grid);
+            if *x >= grid[y].len() {continue;}
+            if *x == col && y == row {continue;}
+            grid[y][*x].energy += 1;
+            flash(y, *x, grid);
         }
     }
 }
@@ -137,9 +138,21 @@ fn main() {
 
     let mut grid = parse_input(input);
 
+    println!("Before any steps:");
     print_grid(&grid);
-    for i in 0..10 {
-        println!("---------- Step {}", i+1);
+    for i in 0..100 {
+        println!();
+        println!("After step {}:", i+1);
         step(&mut grid);
     }
+
+    // Count the total number of flashes
+    let mut flashes = 0;
+    for row in grid.into_iter() {
+        for dumbo in row {
+            flashes += dumbo.flashes;
+        }
+    }
+
+    println!("Total flashes: {}", flashes);
 }
