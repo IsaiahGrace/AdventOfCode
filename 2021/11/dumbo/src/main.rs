@@ -119,13 +119,6 @@ fn step(grid: &mut Vec<Vec<Dumbo>>) {
 
     // Print out the grid, making flashers bold
     print_grid(grid);
-
-    // Turn off flashers so that we have a fresh start for next time
-    for row in grid {
-        for dumbo in row {
-            dumbo.flashing = false;
-        }
-    }
 }
 
 fn main() {
@@ -138,12 +131,33 @@ fn main() {
 
     let mut grid = parse_input(input);
 
+    let mut all_flashing = false;
+    let mut i = 0;
+
     println!("Before any steps:");
     print_grid(&grid);
-    for i in 0..100 {
+    while !all_flashing {
         println!();
         println!("After step {}:", i+1);
         step(&mut grid);
+        i += 1;
+
+        // Check if all the dumbos are flashing
+        all_flashing = true;
+        for row in &grid {
+            for dumbo in row {
+                if !dumbo.flashing {
+                    all_flashing = false;
+                }
+            }
+        }
+
+        // Turn off flashers so that we have a fresh start for next time
+        for row in &mut grid {
+            for dumbo in row {
+                dumbo.flashing = false;
+            }
+        }
     }
 
     // Count the total number of flashes
@@ -155,4 +169,5 @@ fn main() {
     }
 
     println!("Total flashes: {}", flashes);
+    println!("Steps: {}", i);
 }
