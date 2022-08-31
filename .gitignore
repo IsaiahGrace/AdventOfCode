@@ -5,3 +5,13 @@ target
 *.png
 *.gif
 a.out
+
+# Zig files
+zig-cache/
+zig-out/
+/release/
+/debug/
+/build/
+/build-*/
+/docgen_tmp/
+
