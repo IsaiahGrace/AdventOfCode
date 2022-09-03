@@ -1,8 +1,5 @@
-// const io = @import("std").io;
-// const log = @import("std").log;
-// const os = @import("std").os;
 const std = @import("std");
-//const testing = @import("std").testing;
+const fileIo = @import("fileIo.zig");
 
 pub fn main() !void {
     if (std.os.argv.len != 2) {
@@ -10,14 +7,26 @@ pub fn main() !void {
         return error.NoArguments;
     }
 
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
+    // We'll use a simple arena allocator.
+    // The deinit call below will free ALL memory allocated with this allocator.
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
 
-    const filePath = try std.fmt.allocPrint(allocator, "{s}", .{std.os.argv[1]});
+    const allocator = arena.allocator();
+
+    // Okay, we have argv[1], which is a sentinel terminated pointer (there's a \0 at the end).
+    // Zig arrays always have a known length, so we need to calcuate the lenght of argv[1] before we can cast it to an array.
+    // Note: The array will still have the sentinel value,
+    const argLen = std.mem.len(std.os.argv[1]);
+    const filePath = std.os.argv[1][0..argLen :0];
+
+    // The above is equivelent to:
+    // const filePath = std.mem.slice(std.os.argv[1]);
+    // But I've kept it explicit to help me learn.
+
     std.log.info("File path = {s}", .{filePath});
 
-    const buffer = try readFileIntoBuffer(&allocator, filePath);
-    defer allocator.free(buffer);
+    const buffer = try fileIo.readFileIntoBuffer(&allocator, filePath);
 
     std.log.info("File contents:\n{s}", .{buffer});
 }
