@@ -18,12 +18,17 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) !void {
         elves[i] += try std.fmt.parseUnsigned(u32, line, 10);
     }
 
+    std.sort.sort(u32, elves, {}, asc);
+
     for (elves) |elf, x| {
         std.log.info("{d}: {d}", .{ x, elf });
     }
 
-    var max = std.sort.max(u32, elves, {}, asc);
-    std.log.info("max: {d}", .{max});
+    const part1 = elves[elves.len - 1];
+    const part2 = elves[elves.len - 1] + elves[elves.len - 2] + elves[elves.len - 3];
+
+    std.log.info("Part 1 solution: {d}", .{part1});
+    std.log.info("Part 2 solution: {d}", .{part2});
 }
 
 fn countElves(input: []const u8) usize {
