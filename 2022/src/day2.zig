@@ -13,27 +13,29 @@ const handShape = enum {
 };
 
 pub fn solve(allocator: std.mem.Allocator, input: []u8) !void {
-    var lines = std.mem.tokenize(u8, input, "\n");
-
-    var score: u32 = 0;
-
-    while (lines.next()) |line| {
-        score += try getScore(line);
-    }
-
-    std.log.info("Part 1 score: {d}", .{score});
     _ = allocator;
+
+    // Part 1
+    var linesP1 = std.mem.tokenize(u8, input, "\n");
+    var scoreP1: u32 = 0;
+    while (linesP1.next()) |line| {
+        scoreP1 += try getScoreP1(line);
+    }
+    std.log.info("Part 1 score: {d}", .{scoreP1});
+
+    // Part 2
+    var linesP2 = std.mem.tokenize(u8, input, "\n");
+    var scoreP2: u32 = 0;
+    while (linesP2.next()) |line| {
+        scoreP2 += try getScoreP2(line);
+    }
+    std.log.info("Part 2 score: {d}", .{scoreP2});
 }
 
-fn getScore(line: []const u8) !u32 {
+fn getScoreP1(line: []const u8) !u32 {
     var plays = std.mem.tokenize(u8, line, " ");
 
-    const opponent: handShape = switch (plays.next().?[0]) {
-        'A' => .rock,
-        'B' => .paper,
-        'C' => .scissors,
-        else => return error.InvalidPuzzleInput,
-    };
+    const opponent: handShape = try parseOpponent(plays.next().?[0]);
 
     const me: handShape = switch (plays.next().?[0]) {
         'X' => .rock,
@@ -47,19 +49,59 @@ fn getScore(line: []const u8) !u32 {
         return error.InvalidPuzzleInput;
     }
 
-    const handShapeScore: u32 = switch (me) {
+    const handShapeScore: u32 = getHandShapeScore(me);
+    const gameResultScore: u32 = getGameResultScore(getGameResult(opponent, me));
+    return handShapeScore + gameResultScore;
+}
+
+fn getScoreP2(line: []const u8) !u32 {
+    var plays = std.mem.tokenize(u8, line, " ");
+
+    const opponent: handShape = try parseOpponent(plays.next().?[0]);
+
+    const requiredOutcome: gameResult = switch (plays.next().?[0]) {
+        'X' => .loss,
+        'Y' => .draw,
+        'Z' => .win,
+        else => return error.InvalidPuzzleInput,
+    };
+
+    if (plays.next() != null) {
+        return error.InvalidPuzzleInput;
+    }
+
+    const me: handShape = getRequiredHandShape(opponent, requiredOutcome);
+
+    const handShapeScore = getHandShapeScore(me);
+
+    const gameResultScore = getGameResultScore(requiredOutcome);
+
+    return handShapeScore + gameResultScore;
+}
+
+fn parseOpponent(opponent: u8) !handShape {
+    return switch (opponent) {
+        'A' => .rock,
+        'B' => .paper,
+        'C' => .scissors,
+        else => error.InvalidPuzzleInput,
+    };
+}
+
+fn getHandShapeScore(me: handShape) u32 {
+    return switch (me) {
         .rock => 1,
         .paper => 2,
         .scissors => 3,
     };
+}
 
-    const gameResultScore: u32 = switch (getGameResult(opponent, me)) {
+fn getGameResultScore(result: gameResult) u32 {
+    return switch (result) {
         .win => 6,
         .loss => 0,
         .draw => 3,
     };
-
-    return handShapeScore + gameResultScore;
 }
 
 fn getGameResult(opponent: handShape, me: handShape) gameResult {
@@ -79,5 +121,21 @@ fn getGameResult(opponent: handShape, me: handShape) gameResult {
             .paper => return .loss,
             .scissors => return .draw,
         },
+    }
+}
+
+fn getRequiredHandShape(opponent: handShape, result: gameResult) handShape {
+    switch (result) {
+        .win => switch (opponent) {
+            .rock => return .paper,
+            .paper => return .scissors,
+            .scissors => return .rock,
+        },
+        .loss => switch (opponent) {
+            .rock => return .scissors,
+            .paper => return .rock,
+            .scissors => return .paper,
+        },
+        .draw => return opponent,
     }
 }
