@@ -1,5 +1,6 @@
 const std = @import("std");
 const day1 = @import("day1.zig");
+const day2 = @import("day2.zig");
 
 pub fn main() anyerror!void {
     if (std.os.argv.len != 3) {
@@ -20,12 +21,11 @@ pub fn main() anyerror!void {
 
     const filePath = try std.mem.join(allocator, "/", &.{ dayStr, file });
 
-    std.log.info("Input path: {s}", .{filePath});
-
     const buffer = try readFileIntoBuffer(allocator, filePath);
 
     switch (dayInt) {
         1 => try day1.solve(allocator, buffer),
+        2 => try day2.solve(allocator, buffer),
         else => std.log.err("Unknown day", .{}),
     }
 }
