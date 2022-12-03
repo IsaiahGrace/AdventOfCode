@@ -1,9 +1,10 @@
 const std = @import("std");
-const puzzle = @import("puzzle.zig");
+const day1 = @import("day1.zig");
 
 pub fn main() anyerror!void {
-    if (std.os.argv.len != 2) {
-        std.log.err("Please specify an input file containing the puzzle information", .{});
+    if (std.os.argv.len != 3) {
+        std.log.err("Usage:", .{});
+        std.log.err("<day number> (testX|input)", .{});
         return error.NoArguments;
     }
 
@@ -12,13 +13,22 @@ pub fn main() anyerror!void {
 
     const allocator = arena.allocator();
 
-    const filePath = std.mem.span(std.os.argv[1]);
+    const dayStr = std.mem.span(std.os.argv[1]);
+    const dayInt = try std.fmt.parseUnsigned(u8, dayStr, 10);
+
+    const file = std.mem.span(std.os.argv[2]);
+
+    const filePathArray = .{ dayStr, file };
+    const filePath = try std.mem.join(allocator, "/", &filePathArray);
 
     std.log.info("Input path: {s}", .{filePath});
 
     const buffer = try readFileIntoBuffer(allocator, filePath);
 
-    try puzzle.solve(allocator, buffer);
+    switch (dayInt) {
+        1 => try day1.solve(allocator, buffer),
+        else => std.log.err("Unknown day", .{}),
+    }
 }
 
 pub fn readFileIntoBuffer(allocator: std.mem.Allocator, filePath: []const u8) ![]u8 {
