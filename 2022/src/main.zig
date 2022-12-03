@@ -15,19 +15,27 @@ pub fn main() anyerror!void {
     const allocator = arena.allocator();
 
     const dayStr = std.mem.span(std.os.argv[1]);
-    const dayInt = try std.fmt.parseUnsigned(u8, dayStr, 10);
+    const day = try std.fmt.parseUnsigned(u8, dayStr, 10);
 
     const file = std.mem.span(std.os.argv[2]);
-
     const filePath = try std.mem.join(allocator, "/", &.{ dayStr, file });
 
-    const buffer = try readFileIntoBuffer(allocator, filePath);
+    const solutions = try solvePuzzle(allocator, day, filePath);
 
-    switch (dayInt) {
+    std.log.info("Part 1 solution: {d}", .{solutions[0]});
+    std.log.info("Part 2 solution: {d}", .{solutions[0]});
+}
+
+// I'm breaking this up into a separate function so I can test it bellow for all the days.
+fn solvePuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) ![2]u32 {
+    const buffer = try readFileIntoBuffer(allocator, filePath);
+    defer allocator.free(buffer);
+
+    return switch (day) {
         1 => try day1.solve(allocator, buffer),
         2 => try day2.solve(allocator, buffer),
-        else => std.log.err("Unknown day", .{}),
-    }
+        else => return error.InvalidDay,
+    };
 }
 
 pub fn readFileIntoBuffer(allocator: std.mem.Allocator, filePath: []const u8) ![]u8 {
@@ -39,7 +47,17 @@ pub fn readFileIntoBuffer(allocator: std.mem.Allocator, filePath: []const u8) ![
     var buffer = try allocator.alloc(u8, fileSize);
     errdefer allocator.free(buffer);
 
-    _ = try file.readAll(buffer);
+    const bytesRead = try file.readAll(buffer);
+
+    if (bytesRead != fileSize) {
+        return error.FileNotFullyRead;
+    }
 
     return buffer;
+}
+
+test "Everyday" {
+    var allocator = std.testing.allocator;
+    try std.testing.expectEqual(try solvePuzzle(allocator, 1, "1/input"), .{ 69528, 206152 });
+    try std.testing.expectEqual(try solvePuzzle(allocator, 2, "2/input"), .{ 11475, 16862 });
 }

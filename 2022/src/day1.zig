@@ -2,10 +2,12 @@ const std = @import("std");
 
 const asc = std.sort.asc(u32);
 
-pub fn solve(allocator: std.mem.Allocator, input: []u8) !void {
+pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
     var it = std.mem.split(u8, input, "\n");
 
     var elves = std.ArrayList(u32).init(allocator);
+    defer elves.deinit();
+
     try elves.append(0);
 
     while (it.next()) |line| {
@@ -21,6 +23,5 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) !void {
     const part1 = elves.items[elves.items.len - 1];
     const part2 = elves.items[elves.items.len - 1] + elves.items[elves.items.len - 2] + elves.items[elves.items.len - 3];
 
-    std.log.info("Part 1 solution: {d}", .{part1});
-    std.log.info("Part 2 solution: {d}", .{part2});
+    return [2]u32{ part1, part2 };
 }

@@ -12,7 +12,7 @@ const handShape = enum {
     scissors,
 };
 
-pub fn solve(allocator: std.mem.Allocator, input: []u8) !void {
+pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
     _ = allocator;
 
     // Part 1
@@ -21,7 +21,6 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) !void {
     while (linesP1.next()) |line| {
         scoreP1 += try getScoreP1(line);
     }
-    std.log.info("Part 1 score: {d}", .{scoreP1});
 
     // Part 2
     var linesP2 = std.mem.tokenize(u8, input, "\n");
@@ -29,7 +28,8 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) !void {
     while (linesP2.next()) |line| {
         scoreP2 += try getScoreP2(line);
     }
-    std.log.info("Part 2 score: {d}", .{scoreP2});
+
+    return [2]u32{ scoreP1, scoreP2 };
 }
 
 fn getScoreP1(line: []const u8) !u32 {
