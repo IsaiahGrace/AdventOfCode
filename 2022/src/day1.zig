@@ -18,10 +18,6 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) !void {
 
     std.sort.sort(u32, elves.items, {}, asc);
 
-    for (elves.items) |elf, x| {
-        std.log.info("{d}: {d}", .{ x, elf });
-    }
-
     const part1 = elves.items[elves.items.len - 1];
     const part2 = elves.items[elves.items.len - 1] + elves.items[elves.items.len - 2] + elves.items[elves.items.len - 3];
 
