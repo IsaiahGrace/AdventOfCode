@@ -18,8 +18,7 @@ pub fn main() anyerror!void {
 
     const file = std.mem.span(std.os.argv[2]);
 
-    const filePathArray = .{ dayStr, file };
-    const filePath = try std.mem.join(allocator, "/", &filePathArray);
+    const filePath = try std.mem.join(allocator, "/", &.{ dayStr, file });
 
     std.log.info("Input path: {s}", .{filePath});
 
