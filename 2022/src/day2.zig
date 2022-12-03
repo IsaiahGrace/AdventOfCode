@@ -15,17 +15,19 @@ const handShape = enum {
 pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
     _ = allocator;
 
+    var lines = std.mem.tokenize(u8, input, "\n");
+
     // Part 1
-    var linesP1 = std.mem.tokenize(u8, input, "\n");
     var scoreP1: u32 = 0;
-    while (linesP1.next()) |line| {
+    while (lines.next()) |line| {
         scoreP1 += try getScoreP1(line);
     }
 
+    lines.reset();
+
     // Part 2
-    var linesP2 = std.mem.tokenize(u8, input, "\n");
     var scoreP2: u32 = 0;
-    while (linesP2.next()) |line| {
+    while (lines.next()) |line| {
         scoreP2 += try getScoreP2(line);
     }
 
