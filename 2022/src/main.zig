@@ -2,6 +2,7 @@ const std = @import("std");
 const day1 = @import("day1.zig");
 const day2 = @import("day2.zig");
 const day3 = @import("day3.zig");
+const day4 = @import("day4.zig");
 
 pub fn main() anyerror!void {
     if (std.os.argv.len != 3) {
@@ -36,6 +37,7 @@ fn solvePuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) ![2]
         1 => try day1.solve(allocator, buffer),
         2 => try day2.solve(allocator, buffer),
         3 => try day3.solve(allocator, buffer),
+        4 => try day4.solve(allocator, buffer),
         else => return error.InvalidDay,
     };
 }
@@ -63,4 +65,5 @@ test "Everyday" {
     try std.testing.expectEqual(try solvePuzzle(allocator, 1, "1/input"), .{ 69528, 206152 });
     try std.testing.expectEqual(try solvePuzzle(allocator, 2, "2/input"), .{ 11475, 16862 });
     try std.testing.expectEqual(try solvePuzzle(allocator, 3, "3/input"), .{ 7691, 2508 });
+    try std.testing.expectEqual(try solvePuzzle(allocator, 4, "4/input"), .{ 530, 0 });
 }
