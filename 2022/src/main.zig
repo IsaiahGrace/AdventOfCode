@@ -1,11 +1,11 @@
 const std = @import("std");
 const day1 = @import("day1.zig");
 const day2 = @import("day2.zig");
+const day3 = @import("day3.zig");
 
 pub fn main() anyerror!void {
     if (std.os.argv.len != 3) {
-        std.log.err("Usage:", .{});
-        std.log.err("<day number> (testX|input)", .{});
+        std.log.err("Usage: <day number> <input file name>", .{});
         return error.NoArguments;
     }
 
@@ -19,11 +19,12 @@ pub fn main() anyerror!void {
 
     const file = std.mem.span(std.os.argv[2]);
     const filePath = try std.mem.join(allocator, "/", &.{ dayStr, file });
+    defer allocator.free(filePath);
 
     const solutions = try solvePuzzle(allocator, day, filePath);
 
     std.log.info("Part 1 solution: {d}", .{solutions[0]});
-    std.log.info("Part 2 solution: {d}", .{solutions[0]});
+    std.log.info("Part 2 solution: {d}", .{solutions[1]});
 }
 
 // I'm breaking this up into a separate function so I can test it bellow for all the days.
@@ -34,6 +35,7 @@ fn solvePuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) ![2]
     return switch (day) {
         1 => try day1.solve(allocator, buffer),
         2 => try day2.solve(allocator, buffer),
+        3 => try day3.solve(allocator, buffer),
         else => return error.InvalidDay,
     };
 }
