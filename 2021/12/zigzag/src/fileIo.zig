@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub fn readFileIntoBuffer(allocator: *const std.mem.Allocator, filePath: []const u8) ![]u8 {
+pub fn readFileIntoBuffer(allocator: std.mem.Allocator, filePath: []const u8) ![]u8 {
     var file = try std.fs.cwd().openFile(filePath, .{ .read = true, .write = false });
     defer file.close();
 

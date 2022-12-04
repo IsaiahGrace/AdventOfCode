@@ -26,23 +26,48 @@ pub fn main() !void {
 
     std.log.info("File path = {s}", .{filePath});
 
-    const buffer = try fileIo.readFileIntoBuffer(&allocator, filePath);
+    const buffer = try fileIo.readFileIntoBuffer(allocator, filePath);
 
     std.log.info("File contents:\n{s}", .{buffer});
+
+    //var caves = try parseInputBuffer(buffer);
+
+    var caveMap: std.BufMap = std.BufMap.init(allocator);
+    try caveMap.put("hello", "map!");
+    std.log.info("{s} = {s}", .{ "hello", caveMap.get("hello") });
 }
 
-fn readFileIntoBuffer(allocator: *const std.mem.Allocator, filePath: []const u8) ![]u8 {
-    var file = try std.fs.cwd().openFile(filePath, .{ .read = true, .write = false });
-    defer file.close();
+// We have a "hashing" algorithm for our cave names, the literal u16 values of the two characters!
 
-    const fileSize = try file.getEndPos();
-    std.log.info("File size = {d}", .{fileSize});
+const CaveTag = packed struct {
+    c1: u8,
+    c2: u8,
+    c3: u8, // If this byte is nonzero, the cave is either the start or the end
+    c4: u8, // If this byte is nonzero, the cave is the start
+};
 
-    var buffer = try allocator.alloc(u8, fileSize);
-    errdefer allocator.free(buffer);
-    std.log.info("Buffer len = {d}", .{buffer.len});
-
-    _ = try file.readAll(buffer);
-
-    return buffer;
+comptime {
+    // @compileLog(@bitSizeOf(CaveTag));
+    // @compileLog(@bitSizeOf(u32));
+    std.debug.assert(@sizeOf(CaveTag) == @sizeOf(u32));
+    std.debug.assert(@bitSizeOf(CaveTag) == @bitSizeOf(u32));
 }
+
+const Size = enum {
+    small,
+    large,
+};
+
+const Cave = struct {
+    id: u32,
+    tag: CaveTag,
+    size: Size,
+    visitedCount: u32,
+
+    // fn fromString(buffer: []const u8) !Cave {
+    //     var cave: Cave = undefined;
+    //     var c = buffer[0];
+    // }
+};
+
+//fn parseInputBuffer(buffer: []const u8) ![]Cave {}
