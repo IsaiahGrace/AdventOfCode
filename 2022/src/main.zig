@@ -62,4 +62,5 @@ test "Everyday" {
     var allocator = std.testing.allocator;
     try std.testing.expectEqual(try solvePuzzle(allocator, 1, "1/input"), .{ 69528, 206152 });
     try std.testing.expectEqual(try solvePuzzle(allocator, 2, "2/input"), .{ 11475, 16862 });
+    try std.testing.expectEqual(try solvePuzzle(allocator, 3, "3/input"), .{ 7691, 2508 });
 }
