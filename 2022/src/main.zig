@@ -3,6 +3,7 @@ const day1 = @import("day1.zig");
 const day2 = @import("day2.zig");
 const day3 = @import("day3.zig");
 const day4 = @import("day4.zig");
+const day5 = @import("day5.zig");
 
 pub fn main() anyerror!void {
     if (std.os.argv.len != 3) {
@@ -22,10 +23,20 @@ pub fn main() anyerror!void {
     const filePath = try std.mem.join(allocator, "/", &.{ dayStr, file });
     defer allocator.free(filePath);
 
-    const solutions = try solvePuzzle(allocator, day, filePath);
-
-    std.log.info("Part 1 solution: {d}", .{solutions[0]});
-    std.log.info("Part 2 solution: {d}", .{solutions[1]});
+    // Geez, day 5 really broke the trend, and made everything much harder...
+    if (day == 5) {
+        const buffer = try readFileIntoBuffer(allocator, filePath);
+        defer allocator.free(buffer);
+        const solutions = try day5.solve(allocator, buffer);
+        std.log.info("Part 1 solution: {s}", .{solutions[0]});
+        std.log.info("Part 1 solution: {s}", .{solutions[1]});
+        allocator.free(solutions[0]);
+        allocator.free(solutions[1]);
+    } else {
+        const solutions = try solvePuzzle(allocator, day, filePath);
+        std.log.info("Part 1 solution: {d}", .{solutions[0]});
+        std.log.info("Part 1 solution: {d}", .{solutions[1]});
+    }
 }
 
 // I'm breaking this up into a separate function so I can test it bellow for all the days.
@@ -38,6 +49,7 @@ fn solvePuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) ![2]
         2 => try day2.solve(allocator, buffer),
         3 => try day3.solve(allocator, buffer),
         4 => try day4.solve(allocator, buffer),
+        5 => return error.Day5IsDifferent,
         else => return error.InvalidDay,
     };
 }
