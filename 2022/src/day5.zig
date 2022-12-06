@@ -9,12 +9,20 @@ const Move = struct {
 };
 
 pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2][]u8 {
-    var stacks = try constructStacks(allocator, input);
+    var stacksP1 = try constructStacks(allocator, input);
     defer {
-        for (stacks) |*stack| {
+        for (stacksP1) |*stack| {
             stack.deinit();
         }
-        allocator.free(stacks);
+        allocator.free(stacksP1);
+    }
+
+    var stacksP2 = try constructStacks(allocator, input);
+    defer {
+        for (stacksP2) |*stack| {
+            stack.deinit();
+        }
+        allocator.free(stacksP2);
     }
 
     var lines = std.mem.tokenize(u8, input, "\n");
@@ -22,24 +30,36 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2][]u8 {
 
     while (lines.next()) |line| {
         const move = try parseMove(line);
-        //printStacks(&stacks);
+        //printStacks(&stacksP2);
         //std.log.info("move {d} from {d} to {d}", .{ move.count, move.from, move.to });
-        try executeMove(&stacks, move);
+        try executeSingleMove(&stacksP1, move);
+        try executeMultiMove(&stacksP2, move);
     }
 
-    //printStacks(&stacks);
+    //printStacks(&stacksP2);
 
-    const part1 = try allocator.alloc(u8, stacks.len);
-    for (stacks) |stack, i| {
+    const part1 = try allocator.alloc(u8, stacksP1.len);
+    errdefer allocator.free(part1);
+    for (stacksP1) |stack, i| {
         part1[i] = stack.items[stack.items.len - 1];
     }
 
-    const part2 = try allocator.alloc(u8, 3);
-    std.mem.copy(u8, part2, "XYZ");
+    const part2 = try allocator.alloc(u8, stacksP2.len);
+    errdefer allocator.free(part1);
+    for (stacksP2) |stack, i| {
+        part2[i] = stack.items[stack.items.len - 1];
+    }
+
     return [2][]u8{ part1, part2 };
 }
 
-fn executeMove(stacks: *[]Stack, move: Move) !void {
+fn executeMultiMove(stacks: *[]Stack, move: Move) !void {
+    const fromIdx = stacks.*[move.from].items.len - move.count;
+    try stacks.*[move.to].appendSlice(stacks.*[move.from].items[fromIdx..]);
+    stacks.*[move.from].shrinkRetainingCapacity(fromIdx);
+}
+
+fn executeSingleMove(stacks: *[]Stack, move: Move) !void {
     var count: u8 = 0;
     while (count < move.count) : (count += 1) {
         try stacks.*[move.to].append(stacks.*[move.from].pop());

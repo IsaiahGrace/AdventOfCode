@@ -26,22 +26,20 @@ pub fn main() anyerror!void {
 
     // Geez, day 5 really broke the trend, and made everything much harder...
     if (day == 5) {
-        const buffer = try readFileIntoBuffer(allocator, filePath);
-        defer allocator.free(buffer);
-        const solutions = try day5.solve(allocator, buffer);
+        const solutions = try solveStrPuzzle(allocator, day, filePath);
         std.log.info("Part 1 solution: {s}", .{solutions[0]});
         std.log.info("Part 1 solution: {s}", .{solutions[1]});
         allocator.free(solutions[0]);
         allocator.free(solutions[1]);
     } else {
-        const solutions = try solvePuzzle(allocator, day, filePath);
+        const solutions = try solveIntPuzzle(allocator, day, filePath);
         std.log.info("Part 1 solution: {d}", .{solutions[0]});
         std.log.info("Part 1 solution: {d}", .{solutions[1]});
     }
 }
 
 // I'm breaking this up into a separate function so I can test it bellow for all the days.
-fn solvePuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) ![2]u32 {
+fn solveIntPuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) ![2]u32 {
     const buffer = try readFileIntoBuffer(allocator, filePath);
     defer allocator.free(buffer);
 
@@ -50,8 +48,17 @@ fn solvePuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) ![2]
         2 => try day2.solve(allocator, buffer),
         3 => try day3.solve(allocator, buffer),
         4 => try day4.solve(allocator, buffer),
-        5 => return error.Day5IsDifferent,
-        else => return error.InvalidDay,
+        else => error.InvalidDay,
+    };
+}
+
+fn solveStrPuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) ![2][]u8 {
+    const buffer = try readFileIntoBuffer(allocator, filePath);
+    defer allocator.free(buffer);
+
+    return switch (day) {
+        5 => try day5.solve(allocator, buffer),
+        else => error.InvalidDay,
     };
 }
 
@@ -75,8 +82,14 @@ pub fn readFileIntoBuffer(allocator: std.mem.Allocator, filePath: []const u8) ![
 
 test "Everyday" {
     var allocator = std.testing.allocator;
-    try std.testing.expectEqual(try solvePuzzle(allocator, 1, "1/input"), .{ 69528, 206152 });
-    try std.testing.expectEqual(try solvePuzzle(allocator, 2, "2/input"), .{ 11475, 16862 });
-    try std.testing.expectEqual(try solvePuzzle(allocator, 3, "3/input"), .{ 7691, 2508 });
-    try std.testing.expectEqual(try solvePuzzle(allocator, 4, "4/input"), .{ 530, 903 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 1, "1/input"), .{ 69528, 206152 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 2, "2/input"), .{ 11475, 16862 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 3, "3/input"), .{ 7691, 2508 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 4, "4/input"), .{ 530, 903 });
+
+    const day5Solution = try solveStrPuzzle(allocator, 5, "5/input");
+    defer allocator.free(day5Solution[0]);
+    defer allocator.free(day5Solution[1]);
+    try std.testing.expectEqualStrings(day5Solution[0], "RNZLFZSJH");
+    try std.testing.expectEqualStrings(day5Solution[1], "CNSFCGJSM");
 }
