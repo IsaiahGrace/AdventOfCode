@@ -8,6 +8,7 @@ const day5 = @import("day5.zig");
 pub fn main() anyerror!void {
     if (std.os.argv.len != 3) {
         std.log.err("Usage: <day number> <input file name>", .{});
+        std.log.err("Program expects a file <day>/<input> to exist.", .{});
         return error.NoArguments;
     }
 
