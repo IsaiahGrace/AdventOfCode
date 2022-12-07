@@ -9,19 +9,15 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
 }
 
 fn solveN(input: []const u8, count: usize) !u32 {
-    var charSet: [256]u1 = undefined;
+    var charSet: u256 = 0;
     var i: usize = 0;
     while (i < input.len - count) : (i += 1) {
-        std.mem.set(u1, &charSet, 0);
+        charSet = 0;
         var j: usize = 0;
         while (j < count) : (j += 1) {
-            charSet[input[i + j]] = 1;
+            charSet |= @as(u256, 1) << input[i + j];
         }
-        var bits: u32 = 0;
-        for (charSet) |bit| {
-            bits += bit;
-        }
-        if (bits == count) {
+        if (@popCount(u256, charSet) == count) {
             return @intCast(u32, i + count);
         }
     }
