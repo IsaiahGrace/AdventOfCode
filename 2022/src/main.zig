@@ -66,7 +66,7 @@ fn solveStrPuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) !
 }
 
 pub fn readFileIntoBuffer(allocator: std.mem.Allocator, filePath: []const u8) ![]u8 {
-    var file = try std.fs.cwd().openFile(filePath, .{ .read = true, .write = false });
+    var file = try std.fs.cwd().openFile(filePath, .{});
     defer file.close();
 
     const fileSize = try file.getEndPos();
@@ -96,5 +96,5 @@ test "Everyday" {
     try std.testing.expectEqualStrings(day5Solution[0], "RNZLFZSJH");
     try std.testing.expectEqualStrings(day5Solution[1], "CNSFCGJSM");
 
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/input"), .{ 1651, 0 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/input"), .{ 1651, 3837 });
 }
