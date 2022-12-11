@@ -28,8 +28,9 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
     // std.log.info("$ tree\n{s}", .{tree});
 
     const part1 = try solveP1(allocator, root);
+    const part2 = try solveP2(allocator, root);
 
-    return [2]u32{ part1, 0 };
+    return [2]u32{ part1, part2 };
 }
 
 const asc_u32 = std.sort.asc(u32);
@@ -55,6 +56,28 @@ fn solveP1(allocator: std.mem.Allocator, root: *Dir) !u32 {
     }
 
     return sum;
+}
+
+fn solveP2(allocator: std.mem.Allocator, root: *Dir) !u32 {
+    const diskCapacity = 70000000;
+    const requiredFreeSpace = 30000000;
+    const currentlyUsedSize = root.size;
+    const currentFreeSpace = diskCapacity - currentlyUsedSize;
+    const targetFreeSize = requiredFreeSpace - currentFreeSpace;
+
+    var sizes = std.ArrayList(u32).init(allocator);
+    defer sizes.deinit();
+    try appendDirSizes(&sizes, root);
+
+    std.sort.sort(u32, sizes.items, {}, asc_u32);
+
+    for (sizes.items) |size| {
+        if (size > targetFreeSize) {
+            return size;
+        }
+    }
+
+    return error.InvalidPuzzleInput;
 }
 
 fn appendDirSizes(sizeArray: *std.ArrayList(u32), dir: *Dir) anyerror!void {
