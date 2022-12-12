@@ -3,6 +3,7 @@ const std = @import("std");
 const Tree = struct {
     height: u4,
     visible: bool,
+    score: u32,
 };
 
 // 1. We can allocate a 2d array up front by finding the length of the first line and the number of lines.
@@ -34,10 +35,90 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
     loadForest(forest, input);
 
     calculateVisibility(forest);
+    calculateScores(forest);
     //try printForest(allocator, forest);
 
     const part1 = countVisible(forest);
-    return [2]u32{ part1, 0 };
+    const part2 = findBestSite(forest);
+    return [2]u32{ part1, part2 };
+}
+
+fn calculateScores(forest: [][]Tree) void {
+    for (forest) |row, y| {
+        for (row) |_, x| {
+            setScore(forest, y, x);
+        }
+    }
+}
+
+fn setScore(forest: [][]Tree, y: usize, x: usize) void {
+    var east: u32 = 0;
+    var west: u32 = 0;
+    var north: u32 = 0;
+    var south: u32 = 0;
+
+    const height: u4 = forest[y][x].height;
+
+    // Look East
+    var row = y;
+    var col = x + 1;
+    while (col < forest[y].len) : (col += 1) {
+        east += 1;
+        if (height <= forest[row][col].height) {
+            break;
+        }
+    }
+
+    // Look West
+    if (x > 0) {
+        row = y;
+        col = x;
+        while (col > 0) {
+            col -= 1;
+            west += 1;
+            if (height <= forest[row][col].height) {
+                break;
+            }
+        }
+    }
+
+    // Look North
+    if (y > 0) {
+        row = y;
+        col = x;
+        while (row > 0) {
+            row -= 1;
+            north += 1;
+            if (height <= forest[row][col].height) {
+                break;
+            }
+        }
+    }
+
+    // Look South
+    row = y + 1;
+    col = x;
+    while (row < forest.len) : (row += 1) {
+        south += 1;
+        if (height <= forest[row][col].height) {
+            break;
+        }
+    }
+
+    // Set the score
+    forest[y][x].score = north * south * east * west;
+}
+
+fn findBestSite(forest: []const []const Tree) u32 {
+    var maxScore: u32 = 0;
+    for (forest) |row| {
+        for (row) |tree| {
+            if (tree.score > maxScore) {
+                maxScore = tree.score;
+            }
+        }
+    }
+    return maxScore;
 }
 
 fn countVisible(forest: []const []const Tree) u32 {
@@ -53,13 +134,13 @@ fn countVisible(forest: []const []const Tree) u32 {
 }
 
 fn calculateVisibility(forest: [][]Tree) void {
-    lookEast(forest);
-    lookWest(forest);
-    lookNorth(forest);
-    lookSouth(forest);
+    lookFromLeft(forest);
+    lookFromRight(forest);
+    lookFromTop(forest);
+    lookFromBottom(forest);
 }
 
-fn lookEast(forest: [][]Tree) void {
+fn lookFromLeft(forest: [][]Tree) void {
     for (forest) |*row| {
         var maxHeight: ?u4 = null;
         for (row.*) |*tree| {
@@ -74,7 +155,7 @@ fn lookEast(forest: [][]Tree) void {
     }
 }
 
-fn lookWest(forest: [][]Tree) void {
+fn lookFromRight(forest: [][]Tree) void {
     for (forest) |*row| {
         var col = row.len;
         var maxHeight: ?u4 = null;
@@ -92,7 +173,7 @@ fn lookWest(forest: [][]Tree) void {
     }
 }
 
-fn lookSouth(forest: [][]Tree) void {
+fn lookFromTop(forest: [][]Tree) void {
     var col: usize = 0;
     while (col < forest[0].len) : (col += 1) {
         var row: usize = 0;
@@ -110,7 +191,7 @@ fn lookSouth(forest: [][]Tree) void {
     }
 }
 
-fn lookNorth(forest: [][]Tree) void {
+fn lookFromBottom(forest: [][]Tree) void {
     var col: usize = 0;
     while (col < forest[0].len) : (col += 1) {
         var row: usize = forest.len;
@@ -165,6 +246,7 @@ fn loadForest(forest: [][]Tree, input: []const u8) void {
         for (line) |char, col| {
             forest[row][col].height = @intCast(u4, char - '0');
             forest[row][col].visible = false;
+            forest[row][col].score = 0;
         }
     }
 }
