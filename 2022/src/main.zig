@@ -92,48 +92,67 @@ pub fn readFileIntoBuffer(allocator: std.mem.Allocator, filePath: []const u8) ![
 test "day1" {
     var allocator = std.testing.allocator;
     try std.testing.expectEqual(try solveIntPuzzle(allocator, 1, "1/input"), .{ 69528, 206152 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 1, "1/test1"), .{ 24000, 45000 });
 }
 
 test "day2" {
     var allocator = std.testing.allocator;
     try std.testing.expectEqual(try solveIntPuzzle(allocator, 2, "2/input"), .{ 11475, 16862 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 2, "2/test1"), .{ 15, 12 });
 }
 
 test "day3" {
     var allocator = std.testing.allocator;
     try std.testing.expectEqual(try solveIntPuzzle(allocator, 3, "3/input"), .{ 7691, 2508 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 3, "3/test1"), .{ 157, 70 });
 }
 
 test "day4" {
     var allocator = std.testing.allocator;
     try std.testing.expectEqual(try solveIntPuzzle(allocator, 4, "4/input"), .{ 530, 903 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 4, "4/test1"), .{ 2, 4 });
 }
 
 test "day5" {
     var allocator = std.testing.allocator;
-    const day5Solution = try solveStrPuzzle(allocator, 5, "5/input");
-    defer allocator.free(day5Solution[0]);
-    defer allocator.free(day5Solution[1]);
+    var day5Solution = try solveStrPuzzle(allocator, 5, "5/input");
     try std.testing.expectEqualStrings(day5Solution[0], "RNZLFZSJH");
     try std.testing.expectEqualStrings(day5Solution[1], "CNSFCGJSM");
+    allocator.free(day5Solution[0]);
+    allocator.free(day5Solution[1]);
+
+    day5Solution = try solveStrPuzzle(allocator, 5, "5/test1");
+    try std.testing.expectEqualStrings(day5Solution[0], "CMZ");
+    try std.testing.expectEqualStrings(day5Solution[1], "MCD");
+    allocator.free(day5Solution[0]);
+    allocator.free(day5Solution[1]);
 }
 
 test "day6" {
     var allocator = std.testing.allocator;
     try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/input"), .{ 1651, 3837 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/test1"), .{ 7, 19 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/test2"), .{ 5, 23 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/test3"), .{ 6, 23 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/test4"), .{ 10, 29 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/test5"), .{ 11, 26 });
 }
 
 test "day7" {
     var allocator = std.testing.allocator;
     try std.testing.expectEqual(try solveIntPuzzle(allocator, 7, "7/input"), .{ 1491614, 6400111 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 7, "7/test1"), .{ 95437, 24933642 });
 }
 
 test "day8" {
     var allocator = std.testing.allocator;
     try std.testing.expectEqual(try solveIntPuzzle(allocator, 8, "8/input"), .{ 1538, 496125 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 8, "8/test1"), .{ 21, 8 });
 }
 
 test "day9" {
     var allocator = std.testing.allocator;
     try std.testing.expectEqual(try solveIntPuzzle(allocator, 9, "9/input"), .{ 6011, 0 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 9, "9/test1"), .{ 13, 0 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 9, "9/test2"), .{ 88, 0 });
 }
