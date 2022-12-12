@@ -7,6 +7,7 @@ const day5 = @import("day5.zig");
 const day6 = @import("day6.zig");
 const day7 = @import("day7.zig");
 const day8 = @import("day8.zig");
+const day9 = @import("day9.zig");
 
 pub fn main() anyerror!void {
     if (std.os.argv.len != 3) {
@@ -55,6 +56,7 @@ fn solveIntPuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) !
         6 => try day6.solve(allocator, buffer),
         7 => try day7.solve(allocator, buffer),
         8 => try day8.solve(allocator, buffer),
+        9 => try day9.solve(allocator, buffer),
         else => error.InvalidDay,
     };
 }
@@ -129,4 +131,9 @@ test "day7" {
 test "day8" {
     var allocator = std.testing.allocator;
     try std.testing.expectEqual(try solveIntPuzzle(allocator, 8, "8/input"), .{ 1538, 496125 });
+}
+
+test "day9" {
+    var allocator = std.testing.allocator;
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 9, "9/input"), .{ 6011, 0 });
 }
