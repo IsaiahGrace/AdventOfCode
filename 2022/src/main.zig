@@ -152,7 +152,7 @@ test "day8" {
 
 test "day9" {
     var allocator = std.testing.allocator;
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 9, "9/input"), .{ 6011, 0 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 9, "9/test1"), .{ 13, 0 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 9, "9/test2"), .{ 88, 0 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 9, "9/input"), .{ 6011, 2419 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 9, "9/test1"), .{ 13, 1 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 9, "9/test2"), .{ 88, 36 });
 }
