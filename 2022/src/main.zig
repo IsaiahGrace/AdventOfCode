@@ -36,14 +36,14 @@ pub fn main() anyerror!void {
         allocator.free(solutions[0]);
         allocator.free(solutions[1]);
     } else {
-        const solutions = try solveIntPuzzle(allocator, day, filePath);
+        const solutions = try solveUintPuzzle(allocator, day, filePath);
         std.log.info("Part 1 solution: {d}", .{solutions[0]});
         std.log.info("Part 2 solution: {d}", .{solutions[1]});
     }
 }
 
 // I'm breaking this up into a separate function so I can test it bellow for all the days.
-fn solveIntPuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) ![2]u32 {
+fn solveUintPuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) ![2]u32 {
     const buffer = try readFileIntoBuffer(allocator, filePath);
     defer allocator.free(buffer);
 
@@ -91,26 +91,26 @@ pub fn readFileIntoBuffer(allocator: std.mem.Allocator, filePath: []const u8) ![
 
 test "day1" {
     var allocator = std.testing.allocator;
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 1, "1/input"), .{ 69528, 206152 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 1, "1/test1"), .{ 24000, 45000 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 1, "1/input"), .{ 69528, 206152 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 1, "1/test1"), .{ 24000, 45000 });
 }
 
 test "day2" {
     var allocator = std.testing.allocator;
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 2, "2/input"), .{ 11475, 16862 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 2, "2/test1"), .{ 15, 12 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 2, "2/input"), .{ 11475, 16862 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 2, "2/test1"), .{ 15, 12 });
 }
 
 test "day3" {
     var allocator = std.testing.allocator;
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 3, "3/input"), .{ 7691, 2508 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 3, "3/test1"), .{ 157, 70 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 3, "3/input"), .{ 7691, 2508 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 3, "3/test1"), .{ 157, 70 });
 }
 
 test "day4" {
     var allocator = std.testing.allocator;
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 4, "4/input"), .{ 530, 903 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 4, "4/test1"), .{ 2, 4 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 4, "4/input"), .{ 530, 903 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 4, "4/test1"), .{ 2, 4 });
 }
 
 test "day5" {
@@ -130,29 +130,29 @@ test "day5" {
 
 test "day6" {
     var allocator = std.testing.allocator;
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/input"), .{ 1651, 3837 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/test1"), .{ 7, 19 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/test2"), .{ 5, 23 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/test3"), .{ 6, 23 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/test4"), .{ 10, 29 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 6, "6/test5"), .{ 11, 26 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 6, "6/input"), .{ 1651, 3837 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 6, "6/test1"), .{ 7, 19 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 6, "6/test2"), .{ 5, 23 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 6, "6/test3"), .{ 6, 23 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 6, "6/test4"), .{ 10, 29 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 6, "6/test5"), .{ 11, 26 });
 }
 
 test "day7" {
     var allocator = std.testing.allocator;
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 7, "7/input"), .{ 1491614, 6400111 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 7, "7/test1"), .{ 95437, 24933642 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 7, "7/input"), .{ 1491614, 6400111 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 7, "7/test1"), .{ 95437, 24933642 });
 }
 
 test "day8" {
     var allocator = std.testing.allocator;
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 8, "8/input"), .{ 1538, 496125 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 8, "8/test1"), .{ 21, 8 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 8, "8/input"), .{ 1538, 496125 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 8, "8/test1"), .{ 21, 8 });
 }
 
 test "day9" {
     var allocator = std.testing.allocator;
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 9, "9/input"), .{ 6011, 2419 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 9, "9/test1"), .{ 13, 1 });
-    try std.testing.expectEqual(try solveIntPuzzle(allocator, 9, "9/test2"), .{ 88, 36 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 9, "9/input"), .{ 6011, 2419 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 9, "9/test1"), .{ 13, 1 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 9, "9/test2"), .{ 88, 36 });
 }
