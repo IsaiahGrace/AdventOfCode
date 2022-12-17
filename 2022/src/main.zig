@@ -8,6 +8,7 @@ const day6 = @import("day6.zig");
 const day7 = @import("day7.zig");
 const day8 = @import("day8.zig");
 const day9 = @import("day9.zig");
+const day10 = @import("day10.zig");
 
 pub fn main() anyerror!void {
     if (std.os.argv.len != 3) {
@@ -35,6 +36,10 @@ pub fn main() anyerror!void {
         std.log.info("Part 2 solution: {s}", .{solutions[1]});
         allocator.free(solutions[0]);
         allocator.free(solutions[1]);
+    } else if (day == 10) {
+        const solutions = try solveIntPuzzle(allocator, day, filePath);
+        std.log.info("Part 1 solution: {d}", .{solutions[0]});
+        std.log.info("Part 2 solution: {d}", .{solutions[1]});
     } else {
         const solutions = try solveUintPuzzle(allocator, day, filePath);
         std.log.info("Part 1 solution: {d}", .{solutions[0]});
@@ -57,6 +62,17 @@ fn solveUintPuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) 
         7 => try day7.solve(allocator, buffer),
         8 => try day8.solve(allocator, buffer),
         9 => try day9.solve(allocator, buffer),
+        10 => error.InvalidDay,
+        else => error.InvalidDay,
+    };
+}
+
+fn solveIntPuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) ![2]i32 {
+    const buffer = try readFileIntoBuffer(allocator, filePath);
+    defer allocator.free(buffer);
+
+    return switch (day) {
+        10 => try day10.solve(allocator, buffer),
         else => error.InvalidDay,
     };
 }
@@ -155,4 +171,10 @@ test "day9" {
     try std.testing.expectEqual(try solveUintPuzzle(allocator, 9, "9/input"), .{ 6011, 2419 });
     try std.testing.expectEqual(try solveUintPuzzle(allocator, 9, "9/test1"), .{ 13, 1 });
     try std.testing.expectEqual(try solveUintPuzzle(allocator, 9, "9/test2"), .{ 88, 36 });
+}
+
+test "day10" {
+    var allocator = std.testing.allocator;
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 10, "10/input"), .{ 14560, 0 });
+    try std.testing.expectEqual(try solveIntPuzzle(allocator, 10, "10/test1"), .{ 13140, 0 });
 }
