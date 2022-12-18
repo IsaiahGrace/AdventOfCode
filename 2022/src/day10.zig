@@ -10,12 +10,56 @@ const Opcode = union(OpcodeTypes) {
     noop: void,
 };
 
+const ScreenBuffer = struct {
+    const Self = @This();
+
+    rows: [6][40]u8,
+    frame: u32,
+
+    fn drawPixel(self: *Self, clk: u32, x: i32) void {
+        const clkRow = ((clk - 1) / 40) % 6;
+        const clkCol = (clk - 1) % 40;
+        var row = &self.rows[clkRow];
+        if (x == clkCol or (x + 1) == clkCol or (x - 1) == clkCol) {
+            row.*[clkCol] = '#';
+        }
+        //self.print();
+        //std.log.info("x: {d} clk: {d} clkRow: {d} clkCol: {d}", .{ x, clk, clkRow, clkCol });
+    }
+
+    // Prints the display to stdout:
+    fn print(self: *Self) void {
+        std.log.info("{:^40}", .{self.frame});
+        for (self.rows) |row| {
+            std.log.info("{s}", .{row});
+        }
+        self.frame += 1;
+    }
+};
+
 const CPU = struct {
     const Self = @This();
 
     clk: u32,
     x: i32,
     signalStrengthSum: i32,
+    screen: ScreenBuffer,
+
+    fn init() Self {
+        var self = CPU{
+            .clk = 1,
+            .x = 1,
+            .signalStrengthSum = 0,
+            .screen = undefined,
+        };
+        for (self.screen.rows) |*row| {
+            for (row.*) |*col| {
+                col.* = '.';
+            }
+        }
+        self.screen.frame = 0;
+        return self;
+    }
 
     fn exec(self: *Self, opcode: Opcode) void {
         self.tick();
@@ -36,6 +80,14 @@ const CPU = struct {
         } else {
             //std.log.info("Clk: {:3<}  x: {d}", .{ self.clk, self.x });
         }
+
+        self.screen.drawPixel(self.clk, self.x);
+
+        // Print the screen after every 240 clock cycles (1 full screen refresh)
+        if ((self.clk % 240) == 0) {
+            self.screen.print();
+        }
+
         self.clk += 1;
     }
 };
@@ -43,11 +95,7 @@ const CPU = struct {
 pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]i32 {
     _ = allocator;
 
-    var cpu = CPU{
-        .clk = 1,
-        .x = 1,
-        .signalStrengthSum = 0,
-    };
+    var cpu = CPU.init();
 
     var lines = std.mem.tokenize(u8, input, "\n");
     while (lines.next()) |line| {
