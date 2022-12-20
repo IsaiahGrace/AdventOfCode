@@ -1,11 +1,11 @@
 const std = @import("std");
 
-pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
+pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     _ = allocator;
 
     const part1 = try solveP1(input);
     const part2 = try solveP2(input);
-    return [2]u32{ part1, part2 };
+    return [2]u64{ part1, part2 };
 }
 
 fn solveN(input: []const u8, count: usize) !u32 {

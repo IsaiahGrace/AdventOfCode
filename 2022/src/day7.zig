@@ -18,7 +18,7 @@ const File = struct {
     size: u32,
 };
 
-pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
+pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     var root = try initRoot(allocator, input);
     defer allocator.destroy(root);
     defer deinitDir(allocator, root);
@@ -30,7 +30,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
     const part1 = try solveP1(allocator, root);
     const part2 = try solveP2(allocator, root);
 
-    return [2]u32{ part1, part2 };
+    return [2]u64{ part1, part2 };
 }
 
 const asc_u32 = std.sort.asc(u32);

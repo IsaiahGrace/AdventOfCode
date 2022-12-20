@@ -12,7 +12,7 @@ const handShape = enum {
     scissors,
 };
 
-pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
+pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     _ = allocator;
 
     var lines = std.mem.tokenize(u8, input, "\n");
@@ -31,7 +31,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
         scoreP2 += try getScoreP2(line);
     }
 
-    return [2]u32{ scoreP1, scoreP2 };
+    return [2]u64{ scoreP1, scoreP2 };
 }
 
 fn getScoreP1(line: []const u8) !u32 {

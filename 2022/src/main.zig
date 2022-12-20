@@ -49,7 +49,7 @@ pub fn main() anyerror!void {
 }
 
 // I'm breaking this up into a separate function so I can test it bellow for all the days.
-fn solveUintPuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) ![2]u32 {
+fn solveUintPuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8) ![2]u64 {
     const buffer = try readFileIntoBuffer(allocator, filePath);
     defer allocator.free(buffer);
 

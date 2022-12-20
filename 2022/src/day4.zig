@@ -5,7 +5,7 @@ const intersectionType = struct {
     overlaps: bool,
 };
 
-pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
+pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     _ = allocator;
 
     var lines = std.mem.tokenize(u8, input, "\n");
@@ -25,7 +25,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
         }
     }
 
-    return [2]u32{ part1, part2 };
+    return [2]u64{ part1, part2 };
 }
 
 fn findIntersections(set1: []const u8, set2: []const u8) !intersectionType {

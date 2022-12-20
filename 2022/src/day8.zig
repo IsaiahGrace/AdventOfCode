@@ -17,7 +17,7 @@ const Tree = struct {
 
 // Bonus: Print out the forest, and use colors/boldness to show which trees are visible?
 
-pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
+pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     const dimensions = findDimensions(input);
 
     var forest: [][]Tree = try allocator.alloc([]Tree, dimensions[0]);
@@ -40,7 +40,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
 
     const part1 = countVisible(forest);
     const part2 = findBestSite(forest);
-    return [2]u32{ part1, part2 };
+    return [2]u64{ part1, part2 };
 }
 
 fn calculateScores(forest: [][]Tree) void {

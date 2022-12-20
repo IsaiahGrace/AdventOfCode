@@ -24,11 +24,11 @@ const Command = struct {
 
 const PointSet = std.AutoHashMap(Point, void);
 
-pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
+pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     const part1 = try solveP1(allocator, input);
     const part2 = try solveP2(allocator, input);
 
-    return [2]u32{ part1, part2 };
+    return [2]u64{ part1, part2 };
 }
 
 fn solveP1(allocator: std.mem.Allocator, input: []u8) !u32 {

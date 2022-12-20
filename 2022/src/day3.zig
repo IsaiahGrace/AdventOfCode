@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
+pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     _ = allocator;
     var lines = std.mem.tokenize(u8, input, "\n");
 
@@ -18,7 +18,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
         part2 += try findBadge(line1, line2, line3);
     }
 
-    return [2]u32{ part1, part2 };
+    return [2]u64{ part1, part2 };
 }
 
 fn findPriority(line: []const u8) !u8 {
