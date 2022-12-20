@@ -183,6 +183,6 @@ test "day10" {
 
 test "day11" {
     var allocator = std.testing.allocator;
-    try std.testing.expectEqual(try solveUintPuzzle(allocator, 11, "11/input"), .{ 55930, 0 });
-    try std.testing.expectEqual(try solveUintPuzzle(allocator, 11, "11/test1"), .{ 10605, 0 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 11, "11/input"), .{ 55930, 14636993466 });
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 11, "11/test1"), .{ 10605, 2713310158 });
 }

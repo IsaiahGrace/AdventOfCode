@@ -20,31 +20,55 @@ const Monkey = struct {
     inspectedCount: u32,
 };
 
-pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u32 {
-    _ = allocator;
-    _ = input;
-
-    var monkeys = try parseMonkeys(allocator, input);
+pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
+    var monkeysP1 = try parseMonkeys(allocator, input);
     defer {
-        for (monkeys) |*monkey|
+        for (monkeysP1) |*monkey|
             monkey.items.deinit();
-        allocator.free(monkeys);
+        allocator.free(monkeysP1);
     }
+    const part1 = try solveP1(monkeysP1);
 
-    const part1 = try solveP1(monkeys);
+    var monkeysP2 = try parseMonkeys(allocator, input);
+    defer {
+        for (monkeysP2) |*monkey|
+            monkey.items.deinit();
+        allocator.free(monkeysP2);
+    }
+    const part2 = try solveP2(monkeysP2);
 
-    return [2]u32{ part1, 0 };
+    return [2]u64{ part1, part2 };
 }
 
-fn solveP1(monkeys: []Monkey) !u32 {
-    var i: u8 = 0;
-    while (i < 20) : (i += 1) {
-        try playRound(monkeys);
+fn solveP2(monkeys: []Monkey) !u64 {
+    var commonMultiple: u64 = 1;
+    for (monkeys) |monkey| {
+        commonMultiple *= monkey.testDivisibleBy;
     }
 
-    // Get the top two monkeys and calcualte the monkey buisness.
-    var first: u32 = 0;
-    var second: u32 = 0;
+    var i: u32 = 0;
+    while (i < 10000) : (i += 1) {
+        try playRound(monkeys, commonMultiple);
+    }
+
+    // for (monkeys) |monkey, j| {
+    //     std.log.info("Monkey {d} inspected items {d} times.", .{ j, monkey.inspectedCount });
+    // }
+
+    return getMonkeyBuisness(monkeys);
+}
+
+fn solveP1(monkeys: []Monkey) !u64 {
+    var i: u8 = 0;
+    while (i < 20) : (i += 1) {
+        try playRound(monkeys, null);
+    }
+    return getMonkeyBuisness(monkeys);
+}
+
+fn getMonkeyBuisness(monkeys: []const Monkey) u64 {
+    var first: u64 = 0;
+    var second: u64 = 0;
     for (monkeys) |monkey| {
         if (monkey.inspectedCount > first) {
             second = first;
@@ -57,22 +81,25 @@ fn solveP1(monkeys: []Monkey) !u32 {
     return first * second;
 }
 
-fn playRound(monkeys: []Monkey) !void {
+fn playRound(monkeys: []Monkey, lcm: ?u64) !void {
     for (monkeys) |*monkey| {
         while (monkey.items.popOrNull()) |item| {
-            //std.log.info("monkey: {d}, item worry: {d}", .{ i, item });
             monkey.inspectedCount += 1;
             var new = switch (monkey.operation.operator) {
                 .square => item * item,
                 .add => item + monkey.operation.operand,
                 .mul => item * monkey.operation.operand,
             };
-            new = new / 3;
+
+            if (lcm) |cm| {
+                new = new % cm;
+            } else {
+                new = new / 3;
+            }
+
             if (new % monkey.testDivisibleBy == 0) {
-                //std.log.info("monkey: {d}, throws {d} to {d}", .{ i, new, monkey.trueMonkey });
                 try monkeys[monkey.trueMonkey].items.append(new);
             } else {
-                //std.log.info("monkey: {d}, throws {d} to {d}", .{ i, new, monkey.falseMonkey });
                 try monkeys[monkey.falseMonkey].items.append(new);
             }
         }
