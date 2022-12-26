@@ -20,7 +20,46 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) ![2]u64 {
 
     const part1 = try solveP1(allocator, signal);
 
-    return [2]u64{ part1, 0 };
+    // Create a list of all packets:
+    var packets = std.ArrayList(Packet).init(allocator);
+    defer packets.deinit();
+    for (signal.items) |p| {
+        try packets.append(p.left);
+        try packets.append(p.right);
+    }
+
+    const divPacket2 = try parsePacketList(allocator, "[[2]]");
+    defer deinitPacket(divPacket2);
+    const divPacket6 = try parsePacketList(allocator, "[[6]]");
+    defer deinitPacket(divPacket6);
+
+    try packets.append(divPacket2);
+    try packets.append(divPacket6);
+
+    std.sort.insertionSort(Packet, packets.items, allocator, packetLessThan);
+
+    var divPacket2Index: u64 = 0;
+    var divPacket6Index: u64 = 0;
+    for (packets.items) |p, i| {
+        if (orderPackets(allocator, p, divPacket2) == std.math.Order.eq) {
+            divPacket2Index = i;
+        }
+        if (orderPackets(allocator, p, divPacket6) == std.math.Order.eq) {
+            divPacket6Index = i;
+        }
+    }
+
+    const part2 = (divPacket2Index + 1) * (divPacket6Index + 1);
+
+    return [2]u64{ part1, part2 };
+}
+
+fn packetLessThan(allocator: std.mem.Allocator, left: Packet, right: Packet) bool {
+    if (orderPackets(allocator, left, right) == std.math.Order.lt) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 fn solveP1(allocator: std.mem.Allocator, signal: Signal) !u64 {
@@ -28,7 +67,7 @@ fn solveP1(allocator: std.mem.Allocator, signal: Signal) !u64 {
     defer orderedPairs.deinit();
 
     for (signal.items) |p, i| {
-        if ((try isPairOrdered(allocator, p)).?) {
+        if (orderPackets(allocator, p.left, p.right) == std.math.Order.lt) {
             try orderedPairs.append(i + 1);
         }
     }
@@ -40,46 +79,37 @@ fn solveP1(allocator: std.mem.Allocator, signal: Signal) !u64 {
     return part1;
 }
 
-fn isPairOrdered(allocator: std.mem.Allocator, pair: Pair) anyerror!?bool {
+fn orderPackets(allocator: std.mem.Allocator, left: Packet, right: Packet) std.math.Order {
     var i: usize = 0;
-    while (i < pair.left.items.len) : (i += 1) {
-        if (i >= pair.right.items.len) return false;
+    while (i < left.items.len) : (i += 1) {
+        if (i >= right.items.len) return std.math.Order.gt;
 
-        if (pair.left.items[i] == .item and pair.right.items[i] == .item) {
-            if (pair.left.items[i].item > pair.right.items[i].item) return false;
-            if (pair.left.items[i].item < pair.right.items[i].item) return true;
-        } else if (pair.left.items[i] == .list and pair.right.items[i] == .list) {
-            const newPair = Pair{
-                .left = pair.left.items[i].list,
-                .right = pair.right.items[i].list,
-            };
-            if (try isPairOrdered(allocator, newPair)) |o| return o;
-        } else if (pair.left.items[i] == .list) {
-            var right = Packet.init(allocator);
-            defer right.deinit();
-            try right.append(Value{ .item = pair.right.items[i].item });
-            const newPair = Pair{
-                .left = pair.left.items[i].list,
-                .right = right,
-            };
-            if (try isPairOrdered(allocator, newPair)) |o| return o;
-        } else if (pair.right.items[i] == .list) {
-            var left = Packet.init(allocator);
-            defer left.deinit();
-            try left.append(Value{ .item = pair.left.items[i].item });
-            const newPair = Pair{
-                .left = left,
-                .right = pair.right.items[i].list,
-            };
-            if (try isPairOrdered(allocator, newPair)) |o| return o;
+        if (left.items[i] == .item and right.items[i] == .item) {
+            if (left.items[i].item > right.items[i].item) return std.math.Order.gt;
+            if (left.items[i].item < right.items[i].item) return std.math.Order.lt;
+        } else if (left.items[i] == .list and right.items[i] == .list) {
+            const ordering = orderPackets(allocator, left.items[i].list, right.items[i].list);
+            if (ordering != std.math.Order.eq) return ordering;
+        } else if (left.items[i] == .list) {
+            var rightPacket = Packet.init(allocator);
+            defer rightPacket.deinit();
+            rightPacket.append(Value{ .item = right.items[i].item }) catch unreachable;
+            const ordering = orderPackets(allocator, left.items[i].list, rightPacket);
+            if (ordering != std.math.Order.eq) return ordering;
+        } else if (right.items[i] == .list) {
+            var leftPacket = Packet.init(allocator);
+            defer leftPacket.deinit();
+            leftPacket.append(Value{ .item = left.items[i].item }) catch unreachable;
+            const ordering = orderPackets(allocator, leftPacket, right.items[i].list);
+            if (ordering != std.math.Order.eq) return ordering;
         }
     }
 
     // If Both lists run out of items, then the ordering is inconclusive
-    if (i == pair.right.items.len) return null;
+    if (i == right.items.len) return std.math.Order.eq;
 
     // If just the left packet ran out, then the ordering is known.
-    return true;
+    return std.math.Order.lt;
 }
 
 fn parseSignal(allocator: std.mem.Allocator, input: []const u8) !Signal {
