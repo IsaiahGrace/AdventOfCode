@@ -19,19 +19,30 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
 
     const deepestRock = try findDeepestRock(cave);
     var part1: u64 = 0;
-    while (try dropSandIntoCave(cave, deepestRock)) |sandCoord| {
+    while (try dropSandIntoCave(cave, deepestRock, false)) |sandCoord| {
         try cave.put(sandCoord, .sand);
         part1 += 1;
     }
 
-    return [2]u64{ part1, 0 };
+    var part2 = part1;
+    while (try dropSandIntoCave(cave, deepestRock, true)) |sandCoord| {
+        try cave.put(sandCoord, .sand);
+        part2 += 1;
+    }
+
+    return [2]u64{ part1, part2 };
 }
 
-// Drops a grain of sand into the cave and returns the coordinate of the sand after it comes to rest, or null if the sand grain falls off into infinity!
-fn dropSandIntoCave(cave: Cave, deepestRock: Coord) !?Coord {
+// Drops a grain of sand into the cave and returns the coordinate of the sand after it comes to rest,
+// or null if the sand grain falls off into infinity (or if there's nowhere for it to go)!
+fn dropSandIntoCave(cave: Cave, deepestRock: Coord, floor: bool) !?Coord {
     var sandPos = Coord{ .x = 500, .y = 0 };
 
-    while (sandPos.y < deepestRock.y) : (sandPos.y += 1) {
+    if (cave.get(sandPos)) |tile| {
+        if (tile == .sand or tile == .rock) return null;
+    }
+
+    while (sandPos.y < deepestRock.y + 1) : (sandPos.y += 1) {
         const down = Coord{ .x = sandPos.x, .y = sandPos.y + 1 };
         const left = Coord{ .x = sandPos.x - 1, .y = sandPos.y + 1 };
         const right = Coord{ .x = sandPos.x + 1, .y = sandPos.y + 1 };
@@ -57,8 +68,13 @@ fn dropSandIntoCave(cave: Cave, deepestRock: Coord) !?Coord {
         return sandPos;
     }
 
-    // The sand has fallen below the deepest rock, so it goes down into the abyss!
-    return null;
+    if (floor) {
+        // The sand has fallen onto the floor and now will pile up.
+        return sandPos;
+    } else {
+        // The sand has fallen below the deepest rock, so it goes down into the abyss!
+        return null;
+    }
 }
 
 fn findDeepestRock(cave: Cave) !Coord {
