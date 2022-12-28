@@ -1,7 +1,6 @@
 const std = @import("std");
 
 const Tile = enum {
-    air,
     sand,
     rock,
 };
@@ -38,9 +37,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
 fn dropSandIntoCave(cave: Cave, deepestRock: Coord, floor: bool) !?Coord {
     var sandPos = Coord{ .x = 500, .y = 0 };
 
-    if (cave.get(sandPos)) |tile| {
-        if (tile == .sand or tile == .rock) return null;
-    }
+    if (cave.get(sandPos) != null) return null;
 
     while (sandPos.y < deepestRock.y + 1) : (sandPos.y += 1) {
         const down = Coord{ .x = sandPos.x, .y = sandPos.y + 1 };
@@ -50,16 +47,16 @@ fn dropSandIntoCave(cave: Cave, deepestRock: Coord, floor: bool) !?Coord {
         const leftTile = cave.get(left);
         const rightTile = cave.get(right);
 
-        if (downTile == null or downTile.? == .air) {
+        if (downTile == null) {
             continue;
         }
 
-        if (leftTile == null or leftTile.? == .air) {
+        if (leftTile == null) {
             sandPos.x -= 1;
             continue;
         }
 
-        if (rightTile == null or rightTile.? == .air) {
+        if (rightTile == null) {
             sandPos.x += 1;
             continue;
         }
@@ -108,10 +105,11 @@ fn constructCave(allocator: std.mem.Allocator, input: []u8) !Cave {
         var coords = std.mem.split(u8, line, " -> ");
 
         // Special case for the first coord on a line:
-        var start: Coord = undefined;
         var startNumbers = std.mem.tokenize(u8, coords.next().?, ",");
-        start.x = try std.fmt.parseUnsigned(isize, startNumbers.next().?, 10);
-        start.y = try std.fmt.parseUnsigned(isize, startNumbers.next().?, 10);
+        var start = Coord{
+            .x = try std.fmt.parseUnsigned(isize, startNumbers.next().?, 10),
+            .y = try std.fmt.parseUnsigned(isize, startNumbers.next().?, 10),
+        };
 
         while (coords.next()) |coord| {
             var numbers = std.mem.tokenize(u8, coord, ",");
@@ -147,10 +145,10 @@ fn drawVerticalLine(cave: *Cave, start: Coord, end: Coord) !void {
     var y = if (start.y >= end.y) end.y else start.y;
 
     // We'll always place at least one tile on the map (i.e. if start == end)
-    try cave.*.put(Coord{ .x = x, .y = endY }, .rock);
+    try cave.put(Coord{ .x = x, .y = endY }, .rock);
 
     while (y != endY) : (y += 1) {
-        try cave.*.put(Coord{ .x = x, .y = y }, .rock);
+        try cave.put(Coord{ .x = x, .y = y }, .rock);
     }
 }
 
@@ -161,8 +159,8 @@ fn drawHorizontalLine(cave: *Cave, start: Coord, end: Coord) !void {
     var x = if (start.x >= end.x) end.x else start.x;
 
     // See drawVerticalLine for explanation.
-    try cave.*.put(Coord{ .x = endX, .y = y }, .rock);
+    try cave.put(Coord{ .x = endX, .y = y }, .rock);
     while (x != endX) : (x += 1) {
-        try cave.*.put(Coord{ .x = x, .y = y }, .rock);
+        try cave.put(Coord{ .x = x, .y = y }, .rock);
     }
 }
