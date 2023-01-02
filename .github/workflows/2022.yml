@@ -1,7 +1,10 @@
-name: "2022 Zig build test"
+name: "2022 tests"
 on:
   pull_request:
   push:
+    paths:
+      - 2022/**
+      - .github/workflows/2022.yml
 jobs:
   zig-build-test:
     runs-on: ubuntu-latest
@@ -10,7 +13,7 @@ jobs:
         working-directory: ./2022
     steps:
     - uses: actions/checkout@v3
-    - uses: cachix/install-nix-action@v18
+    - uses: goto-bus-stop/setup-zig@v2
       with:
-        nix_path: nixpkgs=channel:nixos-unstable
-    - run: nix-shell --packages zig --run "zig build test"
+        version: 0.9.1
+    - run: zig build test

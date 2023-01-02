@@ -1,0 +1,119 @@
+name: "2021 tests"
+on:
+  push:
+    paths:
+      - 2021/**
+      - .github/workflows/2021.yml
+jobs:
+  test-2021-01:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2021/1
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
+    - run: ./test.sh
+
+  test-2021-02:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2021/2/sub
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+    - run: cargo run input.txt
+
+  test-2021-03:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2021/3/power
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+    - run: cargo run input.txt
+    - run: cargo run test.txt
+
+  test-2021-04:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2021/4/bingo
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+    - run: cargo run input.txt
+    - run: cargo run test.txt
+
+  test-2021-05:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2021/5/vents
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+    - run: cargo run input.txt
+    - run: cargo run test.txt
+
+  test-2021-06:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2021/6/fish
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+    - run: cargo run input.txt
+    - run: cargo run test.txt
+
+  test-2021-07:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2021/7/crabs
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+    - run: cargo run input.txt
+    - run: cargo run test.txt
+
+  test-2021-08:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2021/8/display
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+    - run: cargo run input.txt
+    - run: cargo run test.txt
+
+  test-2021-11:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2021/11/dumbo
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+    - run: cargo run input.txt
+    - run: cargo run test.txt
+    - run: cargo run test2.txt
+
+  test-2021-12:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2021/12/paths
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+    - run: cargo run input.txt
+    - run: cargo run test1.txt
+    - run: cargo run test2.txt
+    - run: cargo run test3.txt

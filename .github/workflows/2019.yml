@@ -1,0 +1,110 @@
+name: "2019 tests"
+on:
+  pull_request:
+  push:
+    paths:
+      - 2019/**
+      - .github/workflows/2019.yml
+jobs:
+  test-2019-01:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2019/1
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
+    - run: python 1.py
+
+  test-2019-02:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2019/2
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - run: pip install meson ninja
+    - run: meson setup build
+    - run: ninja -C build
+    - run: ./build/intcode input
+
+  test-2019-03:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2019/3
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - run: pip install meson ninja
+    - run: meson setup build
+    - run: ninja -C build
+    - run: ./build/circuits test1
+    - run: ./build/circuits test2
+    - run: ./build/circuits test3
+    - run: ./build/circuits input
+
+  test-2019-04:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2019/4
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
+    - run: python 4.py
+
+  test-2019-05:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2019/5
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - run: pip install meson ninja
+    - run: meson setup build
+    - run: ninja -C build
+    - run: ./build/intcode test1
+    - run: ./build/intcode test2
+    - run: ./build/intcode test3
+    - run: ./build/intcode test4
+    - run: ./build/intcode test5
+    - run: ./build/intcode test6
+    - run: ./build/intcode test7
+    - run: ./build/intcode test8
+    - run: echo 5 | ./build/intcode test9
+    - run: echo 5 | ./build/intcode test10
+    - run: echo 5 | ./build/intcode test11
+    - run: echo 5 | ./build/intcode test12
+    - run: echo 5 | ./build/intcode test13
+    - run: echo 5 | ./build/intcode test14
+    - run: echo 5 | ./build/intcode test15
+    - run: echo 5 | ./build/intcode input
+
+  test-2019-06:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2019/6
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - run: pip install meson ninja
+    - run: meson setup build
+    - run: ninja -C build
+    - run: ./build/orbits test2
+    - run: ./build/orbits input
