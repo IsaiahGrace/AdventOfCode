@@ -22,7 +22,6 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     var cave = try constructCave(allocator, input);
     defer cave.map.deinit();
 
-    cave.deepest = try findDeepestRock(cave);
     var part1: u64 = 0;
     while (try dropSandIntoCave(cave)) |sandCoord| {
         try cave.map.put(sandCoord, .sand);
@@ -82,32 +81,10 @@ fn dropSandIntoCave(cave: Cave) !?Coord {
     }
 }
 
-fn findDeepestRock(cave: Cave) !isize {
-    var deepestRock: ?Coord = null;
-
-    var tiles = cave.map.iterator();
-    while (tiles.next()) |tile| {
-        if (tile.value_ptr.* != .rock) continue;
-        if (deepestRock) |*rock| {
-            if (tile.key_ptr.y > rock.*.y) {
-                rock.* = tile.key_ptr.*;
-            }
-        } else {
-            deepestRock = tile.key_ptr.*;
-        }
-    }
-
-    if (deepestRock) |rock| {
-        return rock.y;
-    } else {
-        return error.NoRocksFoundInCave;
-    }
-}
-
 fn constructCave(allocator: std.mem.Allocator, input: []u8) !Cave {
     var cave = Cave{
         .map = Map.init(allocator),
-        .deepest = undefined,
+        .deepest = 0,
         .floor = false,
     };
     errdefer cave.map.deinit();
@@ -135,9 +112,9 @@ fn constructCave(allocator: std.mem.Allocator, input: []u8) !Cave {
 
             // Now that we have a starting and ending coordinate, let's draw the rock formation on the cave!
             if (start.x == end.x) {
-                try drawVerticalLine(&cave.map, start, end);
+                try drawVerticalLine(&cave, start, end);
             } else if (start.y == end.y) {
-                try drawHorizontalLine(&cave.map, start, end);
+                try drawHorizontalLine(&cave, start, end);
             } else {
                 // Diagonal line, illegal!
                 return error.InvalidPuzzleInput;
@@ -150,29 +127,36 @@ fn constructCave(allocator: std.mem.Allocator, input: []u8) !Cave {
     return cave;
 }
 
-fn drawVerticalLine(cave: *Map, start: Coord, end: Coord) !void {
+fn drawVerticalLine(cave: *Cave, start: Coord, end: Coord) !void {
     std.debug.assert(start.x == end.x);
     const x = start.x;
     const endY = if (start.y >= end.y) start.y else end.y;
     var y = if (start.y >= end.y) end.y else start.y;
 
     // We'll always place at least one tile on the map (i.e. if start == end)
-    try cave.put(Coord{ .x = x, .y = endY }, .rock);
+    try cave.map.put(Coord{ .x = x, .y = endY }, .rock);
+    while (y < endY) : (y += 1) {
+        try cave.map.put(Coord{ .x = x, .y = y }, .rock);
+    }
 
-    while (y != endY) : (y += 1) {
-        try cave.put(Coord{ .x = x, .y = y }, .rock);
+    if (endY > cave.deepest) {
+        cave.deepest = endY;
     }
 }
 
-fn drawHorizontalLine(cave: *Map, start: Coord, end: Coord) !void {
+fn drawHorizontalLine(cave: *Cave, start: Coord, end: Coord) !void {
     std.debug.assert(start.y == end.y);
     const y = start.y;
     const endX = if (start.x >= end.x) start.x else end.x;
     var x = if (start.x >= end.x) end.x else start.x;
 
     // See drawVerticalLine for explanation.
-    try cave.put(Coord{ .x = endX, .y = y }, .rock);
-    while (x != endX) : (x += 1) {
-        try cave.put(Coord{ .x = x, .y = y }, .rock);
+    try cave.map.put(Coord{ .x = endX, .y = y }, .rock);
+    while (x < endX) : (x += 1) {
+        try cave.map.put(Coord{ .x = x, .y = y }, .rock);
+    }
+
+    if (y > cave.deepest) {
+        cave.deepest = y;
     }
 }
