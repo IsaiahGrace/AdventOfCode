@@ -1,0 +1,16 @@
+name: "2022 Zig build test"
+on:
+  pull_request:
+  push:
+jobs:
+  zig-build-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./2022
+    steps:
+    - uses: actions/checkout@v3
+    - uses: cachix/install-nix-action@v18
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+    - run: nix-shell --packages zig --run "zig build test"
