@@ -10,22 +10,30 @@ const Coord = struct {
     y: isize,
 };
 
-const Cave = std.AutoHashMap(Coord, Tile);
+const Map = std.AutoHashMap(Coord, Tile);
+
+const Cave = struct {
+    map: Map,
+    deepest: isize,
+    floor: bool,
+};
 
 pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     var cave = try constructCave(allocator, input);
-    defer cave.deinit();
+    defer cave.map.deinit();
 
-    const deepestRock = try findDeepestRock(cave);
+    cave.deepest = try findDeepestRock(cave);
     var part1: u64 = 0;
-    while (try dropSandIntoCave(cave, deepestRock, false)) |sandCoord| {
-        try cave.put(sandCoord, .sand);
+    while (try dropSandIntoCave(cave)) |sandCoord| {
+        try cave.map.put(sandCoord, .sand);
         part1 += 1;
     }
 
+    cave.floor = true;
+
     var part2 = part1;
-    while (try dropSandIntoCave(cave, deepestRock, true)) |sandCoord| {
-        try cave.put(sandCoord, .sand);
+    while (try dropSandIntoCave(cave)) |sandCoord| {
+        try cave.map.put(sandCoord, .sand);
         part2 += 1;
     }
 
@@ -34,18 +42,18 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
 
 // Drops a grain of sand into the cave and returns the coordinate of the sand after it comes to rest,
 // or null if the sand grain falls off into infinity (or if there's nowhere for it to go)!
-fn dropSandIntoCave(cave: Cave, deepestRock: Coord, floor: bool) !?Coord {
+fn dropSandIntoCave(cave: Cave) !?Coord {
     var sandPos = Coord{ .x = 500, .y = 0 };
 
-    if (cave.get(sandPos) != null) return null;
+    if (cave.map.get(sandPos) != null) return null;
 
-    while (sandPos.y < deepestRock.y + 1) : (sandPos.y += 1) {
+    while (sandPos.y < cave.deepest + 1) : (sandPos.y += 1) {
         const down = Coord{ .x = sandPos.x, .y = sandPos.y + 1 };
         const left = Coord{ .x = sandPos.x - 1, .y = sandPos.y + 1 };
         const right = Coord{ .x = sandPos.x + 1, .y = sandPos.y + 1 };
-        const downTile = cave.get(down);
-        const leftTile = cave.get(left);
-        const rightTile = cave.get(right);
+        const downTile = cave.map.get(down);
+        const leftTile = cave.map.get(left);
+        const rightTile = cave.map.get(right);
 
         if (downTile == null) {
             continue;
@@ -65,7 +73,7 @@ fn dropSandIntoCave(cave: Cave, deepestRock: Coord, floor: bool) !?Coord {
         return sandPos;
     }
 
-    if (floor) {
+    if (cave.floor) {
         // The sand has fallen onto the floor and now will pile up.
         return sandPos;
     } else {
@@ -74,10 +82,10 @@ fn dropSandIntoCave(cave: Cave, deepestRock: Coord, floor: bool) !?Coord {
     }
 }
 
-fn findDeepestRock(cave: Cave) !Coord {
+fn findDeepestRock(cave: Cave) !isize {
     var deepestRock: ?Coord = null;
 
-    var tiles = cave.iterator();
+    var tiles = cave.map.iterator();
     while (tiles.next()) |tile| {
         if (tile.value_ptr.* != .rock) continue;
         if (deepestRock) |*rock| {
@@ -90,15 +98,19 @@ fn findDeepestRock(cave: Cave) !Coord {
     }
 
     if (deepestRock) |rock| {
-        return rock;
+        return rock.y;
     } else {
         return error.NoRocksFoundInCave;
     }
 }
 
 fn constructCave(allocator: std.mem.Allocator, input: []u8) !Cave {
-    var cave = Cave.init(allocator);
-    errdefer cave.deinit();
+    var cave = Cave{
+        .map = Map.init(allocator),
+        .deepest = undefined,
+        .floor = false,
+    };
+    errdefer cave.map.deinit();
 
     var lines = std.mem.tokenize(u8, input, "\n");
     while (lines.next()) |line| {
@@ -123,9 +135,9 @@ fn constructCave(allocator: std.mem.Allocator, input: []u8) !Cave {
 
             // Now that we have a starting and ending coordinate, let's draw the rock formation on the cave!
             if (start.x == end.x) {
-                try drawVerticalLine(&cave, start, end);
+                try drawVerticalLine(&cave.map, start, end);
             } else if (start.y == end.y) {
-                try drawHorizontalLine(&cave, start, end);
+                try drawHorizontalLine(&cave.map, start, end);
             } else {
                 // Diagonal line, illegal!
                 return error.InvalidPuzzleInput;
@@ -138,7 +150,7 @@ fn constructCave(allocator: std.mem.Allocator, input: []u8) !Cave {
     return cave;
 }
 
-fn drawVerticalLine(cave: *Cave, start: Coord, end: Coord) !void {
+fn drawVerticalLine(cave: *Map, start: Coord, end: Coord) !void {
     std.debug.assert(start.x == end.x);
     const x = start.x;
     const endY = if (start.y >= end.y) start.y else end.y;
@@ -152,7 +164,7 @@ fn drawVerticalLine(cave: *Cave, start: Coord, end: Coord) !void {
     }
 }
 
-fn drawHorizontalLine(cave: *Cave, start: Coord, end: Coord) !void {
+fn drawHorizontalLine(cave: *Map, start: Coord, end: Coord) !void {
     std.debug.assert(start.y == end.y);
     const y = start.y;
     const endX = if (start.x >= end.x) start.x else end.x;
