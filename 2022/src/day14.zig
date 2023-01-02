@@ -1,19 +1,14 @@
 const std = @import("std");
 
-const Tile = enum {
-    sand,
-    rock,
-};
-
 const Coord = struct {
     x: isize,
     y: isize,
 };
 
-const Map = std.AutoHashMap(Coord, Tile);
+const Set = std.AutoHashMap(Coord, void);
 
 const Cave = struct {
-    map: Map,
+    map: Set,
     deepest: isize,
     floor: bool,
 };
@@ -24,7 +19,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
 
     var part1: u64 = 0;
     while (try dropSandIntoCave(cave)) |sandCoord| {
-        try cave.map.put(sandCoord, .sand);
+        try cave.map.put(sandCoord, {});
         part1 += 1;
     }
 
@@ -32,7 +27,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
 
     var part2 = part1;
     while (try dropSandIntoCave(cave)) |sandCoord| {
-        try cave.map.put(sandCoord, .sand);
+        try cave.map.put(sandCoord, {});
         part2 += 1;
     }
 
@@ -83,7 +78,7 @@ fn dropSandIntoCave(cave: Cave) !?Coord {
 
 fn constructCave(allocator: std.mem.Allocator, input: []u8) !Cave {
     var cave = Cave{
-        .map = Map.init(allocator),
+        .map = Set.init(allocator),
         .deepest = 0,
         .floor = false,
     };
@@ -134,9 +129,9 @@ fn drawVerticalLine(cave: *Cave, start: Coord, end: Coord) !void {
     var y = if (start.y >= end.y) end.y else start.y;
 
     // We'll always place at least one tile on the map (i.e. if start == end)
-    try cave.map.put(Coord{ .x = x, .y = endY }, .rock);
+    try cave.map.put(Coord{ .x = x, .y = endY }, {});
     while (y < endY) : (y += 1) {
-        try cave.map.put(Coord{ .x = x, .y = y }, .rock);
+        try cave.map.put(Coord{ .x = x, .y = y }, {});
     }
 
     if (endY > cave.deepest) {
@@ -151,9 +146,9 @@ fn drawHorizontalLine(cave: *Cave, start: Coord, end: Coord) !void {
     var x = if (start.x >= end.x) end.x else start.x;
 
     // See drawVerticalLine for explanation.
-    try cave.map.put(Coord{ .x = endX, .y = y }, .rock);
+    try cave.map.put(Coord{ .x = endX, .y = y }, {});
     while (x < endX) : (x += 1) {
-        try cave.map.put(Coord{ .x = x, .y = y }, .rock);
+        try cave.map.put(Coord{ .x = x, .y = y }, {});
     }
 
     if (y > cave.deepest) {
