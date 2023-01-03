@@ -144,7 +144,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8, context: pc.Context) ![2
     return [2]u64{ @intCast(u64, part1), @intCast(u64, part2) };
 }
 
-fn dist(from: Pos, to: Pos) i64 {
+inline fn dist(from: Pos, to: Pos) i64 {
     @setRuntimeSafety(false);
     const dx = from.x - to.x;
     const dy = from.y - to.y;
@@ -155,9 +155,12 @@ fn dist(from: Pos, to: Pos) i64 {
 
 fn solveP1(cave: Cave, row: i64) u64 {
     var count: u64 = 0;
-    var col = cave.leftBoundary;
-    while (col <= cave.rightBoundary) : (col += 1) {
-        if (cave.get(Pos{ .x = col, .y = row }) == .Empty) {
+    var pos = Pos{
+        .x = cave.leftBoundary,
+        .y = row,
+    };
+    while (pos.x <= cave.rightBoundary) : (pos.x += 1) {
+        if (cave.get(pos) == .Empty) {
             count += 1;
         }
     }
