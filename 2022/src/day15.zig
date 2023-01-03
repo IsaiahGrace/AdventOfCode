@@ -15,29 +15,28 @@ const Pos = struct {
 
 const Sensor = struct {
     pos: Pos,
+    beacon: Pos,
+    distToBeacon: i64,
 };
-
-const Beacon = struct {
-    pos: Pos,
-    distToSensor: i64,
-};
-
-const Map = std.AutoHashMap(Sensor, Beacon);
 
 const Cave = struct {
     const Self = @This();
 
-    sensors: Map,
+    sensors: []Sensor,
     leftBoundary: i64,
     rightBoundary: i64,
+    allocator: std.mem.Allocator,
 
     fn init(allocator: std.mem.Allocator, input: []u8) !Self {
         var cave = Cave{
-            .sensors = Map.init(allocator),
+            .sensors = undefined,
             .leftBoundary = std.math.maxInt(i64),
             .rightBoundary = std.math.minInt(i64),
+            .allocator = allocator,
         };
-        errdefer cave.sensors.deinit();
+
+        var sensors = std.ArrayList(Sensor).init(allocator);
+        errdefer sensors.deinit();
 
         var lines = std.mem.tokenize(u8, input, "\n");
         while (lines.next()) |line| {
@@ -50,11 +49,9 @@ const Cave = struct {
             const beaconXcomma = std.mem.indexOfScalarPos(u8, line, beaconXeql, ',').?;
             const beaconYeql = std.mem.indexOfScalarPos(u8, line, beaconXcomma, '=').?;
 
-            const sensor = Sensor{
-                .pos = Pos{
-                    .x = try std.fmt.parseInt(i64, line[sensorXeql + 1 .. sensorXcomma], 10),
-                    .y = try std.fmt.parseInt(i64, line[sensorYeql + 1 .. sensorYcolon], 10),
-                },
+            const sensorPos = Pos{
+                .x = try std.fmt.parseInt(i64, line[sensorXeql + 1 .. sensorXcomma], 10),
+                .y = try std.fmt.parseInt(i64, line[sensorYeql + 1 .. sensorYcolon], 10),
             };
 
             const beaconPos = Pos{
@@ -62,18 +59,25 @@ const Cave = struct {
                 .y = try std.fmt.parseInt(i64, line[beaconYeql + 1 ..], 10),
             };
 
-            const beacon = Beacon{
-                .pos = beaconPos,
-                .distToSensor = dist(sensor.pos, beaconPos),
+            const sensor = Sensor{
+                .pos = sensorPos,
+                .beacon = beaconPos,
+                .distToBeacon = dist(sensorPos, beaconPos),
             };
 
-            try cave.sensors.put(sensor, beacon);
+            try sensors.append(sensor);
 
-            if (cave.leftBoundary > (sensor.pos.x - beacon.distToSensor)) cave.leftBoundary = sensor.pos.x - beacon.distToSensor;
-            if (cave.rightBoundary < (sensor.pos.x + beacon.distToSensor)) cave.rightBoundary = sensor.pos.x + beacon.distToSensor;
+            if (cave.leftBoundary > (sensor.pos.x - sensor.distToBeacon)) cave.leftBoundary = sensor.pos.x - sensor.distToBeacon;
+            if (cave.rightBoundary < (sensor.pos.x + sensor.distToBeacon)) cave.rightBoundary = sensor.pos.x + sensor.distToBeacon;
         }
         std.debug.assert(cave.leftBoundary < cave.rightBoundary);
+
+        cave.sensors = sensors.toOwnedSlice();
         return cave;
+    }
+
+    fn deinit(self: Self) void {
+        self.allocator.free(self.sensors);
     }
 
     // This function returns a number of +x units that can safely be traversed before an unknown tile might be encountered
@@ -81,8 +85,7 @@ const Cave = struct {
         if (self.getSensorInRange(pos)) |s| {
             const dy = std.math.absInt(pos.y - s.pos.y) catch unreachable;
             const dx = pos.x - s.pos.x;
-            const sensorRange = self.sensors.get(s).?.distToSensor;
-            return sensorRange - dy - dx + 1;
+            return s.distToBeacon - dy - dx + 1;
         } else {
             return 1;
         }
@@ -90,11 +93,10 @@ const Cave = struct {
 
     // Returns a sensor in range of the position.
     fn getSensorInRange(self: Self, pos: Pos) ?Sensor {
-        var sensors = self.sensors.iterator();
-        while (sensors.next()) |s| {
-            const distToSensor = dist(pos, s.key_ptr.pos);
-            if (distToSensor <= s.value_ptr.distToSensor) {
-                return s.key_ptr.*;
+        for (self.sensors) |s| {
+            const distToSensor = dist(pos, s.pos);
+            if (distToSensor <= s.distToBeacon) {
+                return s;
             }
         }
         return null;
@@ -102,13 +104,12 @@ const Cave = struct {
 
     // Returns the tile type for the given position
     fn get(self: Self, pos: Pos) Tile {
-        var sensors = self.sensors.iterator();
-        while (sensors.next()) |s| {
-            const distToSensor = dist(pos, s.key_ptr.pos);
-            const distToBeacon = dist(pos, s.value_ptr.pos);
+        for (self.sensors) |s| {
+            const distToSensor = dist(pos, s.pos);
+            const distToBeacon = dist(pos, s.beacon);
             if (distToSensor == 0) return .Sensor;
             if (distToBeacon == 0) return .Beacon;
-            if (distToSensor <= s.value_ptr.distToSensor) return .Empty;
+            if (distToSensor <= s.distToBeacon) return .Empty;
         }
         return .Unknown;
     }
@@ -132,7 +133,7 @@ const Cave = struct {
 
 pub fn solve(allocator: std.mem.Allocator, input: []u8, context: pc.Context) ![2]u64 {
     var cave = try Cave.init(allocator, input);
-    defer cave.sensors.deinit();
+    defer cave.deinit();
 
     const part1 = solveP1(cave, context.day15.row);
 
@@ -144,9 +145,12 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8, context: pc.Context) ![2
 }
 
 fn dist(from: Pos, to: Pos) i64 {
-    const dx = std.math.absInt(from.x - to.x) catch unreachable;
-    const dy = std.math.absInt(from.y - to.y) catch unreachable;
-    return dx + dy;
+    @setRuntimeSafety(false);
+    const dx = from.x - to.x;
+    const dy = from.y - to.y;
+    const absDx = if (dx < 0) -dx else dx;
+    const absDy = if (dy < 0) -dy else dy;
+    return absDx + absDy;
 }
 
 fn solveP1(cave: Cave, row: i64) u64 {

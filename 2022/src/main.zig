@@ -46,21 +46,23 @@ pub fn main() anyerror!void {
         else => null,
     };
 
+    const stdOut = std.io.getStdOut().writer();
+
     // Geez, day 5 really broke the trend, and made everything much harder...
     if (day == 5) {
         const solutions = try solveStrPuzzle(allocator, day, filePath);
-        std.log.info("Part 1 solution: {s}", .{solutions[0]});
-        std.log.info("Part 2 solution: {s}", .{solutions[1]});
+        try stdOut.print("Part 1 solution: {s}\n", .{solutions[0]});
+        try stdOut.print("Part 2 solution: {s}\n", .{solutions[1]});
         allocator.free(solutions[0]);
         allocator.free(solutions[1]);
     } else if (day == 10) {
         const solutions = try solveIntPuzzle(allocator, day, filePath);
-        std.log.info("Part 1 solution: {d}", .{solutions[0]});
-        std.log.info("Part 2 solution: {d}", .{solutions[1]});
+        try stdOut.print("Part 1 solution: {d}\n", .{solutions[0]});
+        try stdOut.print("Part 2 solution: {d}\n", .{solutions[1]});
     } else {
         const solutions = try solveUintPuzzle(allocator, day, filePath, context);
-        std.log.info("Part 1 solution: {d}", .{solutions[0]});
-        std.log.info("Part 2 solution: {d}", .{solutions[1]});
+        try stdOut.print("Part 1 solution: {d}\n", .{solutions[0]});
+        try stdOut.print("Part 2 solution: {d}\n", .{solutions[1]});
     }
 }
 
