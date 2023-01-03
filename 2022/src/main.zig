@@ -1,4 +1,5 @@
 const std = @import("std");
+const pc = @import("puzzleContext.zig");
 const day1 = @import("day1.zig");
 const day2 = @import("day2.zig");
 const day3 = @import("day3.zig");
@@ -34,8 +35,14 @@ pub fn main() anyerror!void {
     const filePath = try std.mem.join(allocator, "/", &.{ dayStr, file });
     defer allocator.free(filePath);
 
-    const context: ?i64 = switch (day) {
-        15 => try std.fmt.parseInt(i64, std.mem.span(std.os.argv[3]), 10),
+    const context: ?pc.Context = switch (day) {
+        15 => pc.Context{
+            .day15 = pc.Day15{
+                .row = try std.fmt.parseInt(i64, std.mem.span(std.os.argv[3]), 10),
+                .lowerLimit = try std.fmt.parseInt(i64, std.mem.span(std.os.argv[4]), 10),
+                .upperLimit = try std.fmt.parseInt(i64, std.mem.span(std.os.argv[5]), 10),
+            },
+        },
         else => null,
     };
 
@@ -58,7 +65,7 @@ pub fn main() anyerror!void {
 }
 
 // I'm breaking this up into a separate function so I can test it bellow for all the days.
-fn solveUintPuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8, context: ?i64) ![2]u64 {
+fn solveUintPuzzle(allocator: std.mem.Allocator, day: u8, filePath: []const u8, context: ?pc.Context) ![2]u64 {
     const buffer = try readFileIntoBuffer(allocator, filePath);
     defer allocator.free(buffer);
 
@@ -220,6 +227,21 @@ test "day14" {
 
 test "day15" {
     var allocator = std.testing.allocator;
-    try std.testing.expectEqual(try solveUintPuzzle(allocator, 15, "15/input", 2000000), .{ 4919281, 0 });
-    try std.testing.expectEqual(try solveUintPuzzle(allocator, 15, "15/test1", 10), .{ 26, 0 });
+    const inputContext = pc.Context{
+        .day15 = pc.Day15{
+            .row = 2000000,
+            .lowerLimit = 0,
+            .upperLimit = 4000000,
+        },
+    };
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 15, "15/input", inputContext), .{ 4919281, 12630143363767 });
+
+    const test1Context = pc.Context{
+        .day15 = pc.Day15{
+            .row = 10,
+            .lowerLimit = 0,
+            .upperLimit = 20,
+        },
+    };
+    try std.testing.expectEqual(try solveUintPuzzle(allocator, 15, "15/test1", test1Context), .{ 26, 56000011 });
 }

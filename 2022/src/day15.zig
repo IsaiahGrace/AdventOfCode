@@ -1,4 +1,12 @@
 const std = @import("std");
+const pc = @import("puzzleContext.zig");
+
+const Tile = enum {
+    Empty,
+    Beacon,
+    Sensor,
+    Unknown,
+};
 
 const Pos = struct {
     x: i64,
@@ -68,52 +76,87 @@ const Cave = struct {
         return cave;
     }
 
-    // Returns true if the given position is nearer to a sensor than that sensors beacon
-    fn isPosEmpty(self: Self, pos: Pos) bool {
+    // This function returns a number of +x units that can safely be traversed before an unknown tile might be encountered
+    fn traverseSensorX(self: Self, pos: Pos) i64 {
+        if (self.getSensorInRange(pos)) |s| {
+            const dy = std.math.absInt(pos.y - s.pos.y) catch unreachable;
+            const dx = pos.x - s.pos.x;
+            const sensorRange = self.sensors.get(s).?.distToSensor;
+            return sensorRange - dy - dx + 1;
+        } else {
+            return 1;
+        }
+    }
+
+    // Returns a sensor in range of the position.
+    fn getSensorInRange(self: Self, pos: Pos) ?Sensor {
+        var sensors = self.sensors.iterator();
+        while (sensors.next()) |s| {
+            const distToSensor = dist(pos, s.key_ptr.pos);
+            if (distToSensor <= s.value_ptr.distToSensor) {
+                return s.key_ptr.*;
+            }
+        }
+        return null;
+    }
+
+    // Returns the tile type for the given position
+    fn get(self: Self, pos: Pos) Tile {
         var sensors = self.sensors.iterator();
         while (sensors.next()) |s| {
             const distToSensor = dist(pos, s.key_ptr.pos);
             const distToBeacon = dist(pos, s.value_ptr.pos);
-            if (distToSensor == 0) {
-                std.log.info("Sensor: ({d},{d})", .{ pos.x, pos.y });
-                return false;
-            }
-            if (distToBeacon == 0) {
-                std.log.info("Beacon: ({d},{d})", .{ pos.x, pos.y });
-                return false;
-            }
-            if (distToSensor <= s.value_ptr.distToSensor) {
-                std.log.info("Empty : ({d},{d})", .{ pos.x, pos.y });
-                return true;
-            }
+            if (distToSensor == 0) return .Sensor;
+            if (distToBeacon == 0) return .Beacon;
+            if (distToSensor <= s.value_ptr.distToSensor) return .Empty;
         }
-        std.log.info("?????: ({d},{d})", .{ pos.x, pos.y });
-        return false;
+        return .Unknown;
     }
 
-    fn countEmptyRow(self: Self, row: i64) u64 {
-        var count: u64 = 0;
-        var col = self.leftBoundary;
-        while (col <= self.rightBoundary) : (col += 1) {
-            if (self.isPosEmpty(Pos{ .x = col, .y = row })) {
-                count += 1;
+    fn findEmpty(self: Self, lowerLimit: i64, upperLimit: i64) !Pos {
+        var pos = Pos{
+            .x = lowerLimit,
+            .y = lowerLimit,
+        };
+        while (pos.y <= upperLimit) : (pos.y += 1) {
+            while (pos.x <= upperLimit) : (pos.x += self.traverseSensorX(pos)) {
+                if (self.get(pos) == .Unknown) {
+                    return pos;
+                }
             }
+            pos.x = lowerLimit;
         }
-        return count;
+        return error.InvalidInputPuzzle;
     }
 };
 
-pub fn solve(allocator: std.mem.Allocator, input: []u8, row: i64) ![2]u64 {
+pub fn solve(allocator: std.mem.Allocator, input: []u8, context: pc.Context) ![2]u64 {
     var cave = try Cave.init(allocator, input);
     defer cave.sensors.deinit();
 
-    const part1 = cave.countEmptyRow(row);
+    const part1 = solveP1(cave, context.day15.row);
 
-    return [2]u64{ part1, 0 };
+    const distressLocation = try cave.findEmpty(context.day15.lowerLimit, context.day15.upperLimit);
+
+    const part2 = distressLocation.x * 4000000 + distressLocation.y;
+
+    return [2]u64{ @intCast(u64, part1), @intCast(u64, part2) };
 }
 
 fn dist(from: Pos, to: Pos) i64 {
     const dx = std.math.absInt(from.x - to.x) catch unreachable;
     const dy = std.math.absInt(from.y - to.y) catch unreachable;
     return dx + dy;
+}
+
+fn solveP1(cave: Cave, row: i64) u64 {
+    var count: u64 = 0;
+    var col = cave.leftBoundary;
+    while (col <= cave.rightBoundary) : (col += 1) {
+        if (cave.get(Pos{ .x = col, .y = row }) == .Empty) {
+            count += 1;
+        }
+    }
+
+    return count;
 }
