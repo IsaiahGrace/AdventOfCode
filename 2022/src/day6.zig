@@ -17,7 +17,7 @@ fn solveN(input: []const u8, count: usize) !u32 {
         while (j < count) : (j += 1) {
             charSet |= @as(u256, 1) << input[i + j];
         }
-        if (@popCount(u256, charSet) == count) {
+        if (@popCount(charSet) == count) {
             return @intCast(u32, i + count);
         }
     }
