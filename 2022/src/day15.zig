@@ -114,20 +114,30 @@ const Cave = struct {
         return .Unknown;
     }
 
-    fn findEmpty(self: Self, lowerLimit: i64, upperLimit: i64) !Pos {
-        var pos = Pos{
-            .x = lowerLimit,
-            .y = lowerLimit,
-        };
-        while (pos.y <= upperLimit) : (pos.y += 1) {
-            while (pos.x <= upperLimit) : (pos.x += self.traverseSensorX(pos)) {
+    // Scans a rectangle of space for a position with unknown coontent.
+    // Bounds are inclusive. Returns null if all positions are known.
+    // Returns the first unknown position found.
+    fn scanForUnknown(self: Self, lowerLimit: Pos, upperLimit: Pos) ?Pos {
+        var pos = lowerLimit;
+        while (pos.y <= upperLimit.y) : (pos.y += 1) {
+            while (pos.x <= upperLimit.x) : (pos.x += self.traverseSensorX(pos)) {
                 if (self.get(pos) == .Unknown) {
                     return pos;
                 }
             }
-            pos.x = lowerLimit;
+            pos.x = lowerLimit.x;
         }
-        return error.InvalidInputPuzzle;
+        return null;
+    }
+
+    // Scans a rectangular region of space for unknown positions.
+    // Uses a number of threads to speed up the process.
+    fn findEmpty(self: Self, lowerLimit: Pos, upperLimit: Pos) !Pos {
+        if (scanForUnknown(self, lowerLimit, upperLimit)) |p| {
+            return p;
+        } else {
+            return error.InvalidInputPuzzle;
+        }
     }
 };
 
@@ -137,7 +147,15 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8, context: pc.Context) ![2
 
     const part1 = solveP1(cave, context.day15.row);
 
-    const distressLocation = try cave.findEmpty(context.day15.lowerLimit, context.day15.upperLimit);
+    const lowerLimit = Pos{
+        .x = context.day15.lowerLimit,
+        .y = context.day15.lowerLimit,
+    };
+    const upperLimit = Pos{
+        .x = context.day15.upperLimit,
+        .y = context.day15.upperLimit,
+    };
+    const distressLocation = try cave.findEmpty(lowerLimit, upperLimit);
 
     const part2 = distressLocation.x * 4000000 + distressLocation.y;
 
