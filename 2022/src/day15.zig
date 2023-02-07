@@ -80,7 +80,7 @@ const Cave = struct {
         self.allocator.free(self.sensors);
     }
 
-    // This function returns a number of +x units that can safely be traversed before an unknown tile might be encountered
+    /// This function returns a number of +x units that can safely be traversed before an unknown tile might be encountered
     fn traverseSensorX(self: Self, pos: Pos) i64 {
         if (self.getSensorInRange(pos)) |s| {
             const dy = std.math.absInt(pos.y - s.pos.y) catch unreachable;
@@ -91,7 +91,7 @@ const Cave = struct {
         }
     }
 
-    // Returns a sensor in range of the position.
+    /// Returns a sensor in range of the position.
     fn getSensorInRange(self: Self, pos: Pos) ?Sensor {
         for (self.sensors) |s| {
             const distToSensor = dist(pos, s.pos);
@@ -102,7 +102,7 @@ const Cave = struct {
         return null;
     }
 
-    // Returns the tile type for the given position
+    /// Returns the tile type for the given position
     fn get(self: Self, pos: Pos) Tile {
         for (self.sensors) |s| {
             const distToSensor = dist(pos, s.pos);
@@ -114,9 +114,9 @@ const Cave = struct {
         return .Unknown;
     }
 
-    // Scans a rectangle of space for a position with unknown coontent.
-    // Bounds are inclusive. Returns null if all positions are known.
-    // Returns the first unknown position found.
+    /// Scans a rectangle of space for a position with unknown coontent.
+    /// Bounds are inclusive. Returns null if all positions are known.
+    /// Returns the first unknown position found.
     fn scanForUnknown(self: Self, lowerLimit: Pos, upperLimit: Pos) ?Pos {
         var pos = lowerLimit;
         while (pos.y <= upperLimit.y) : (pos.y += 1) {
@@ -130,8 +130,8 @@ const Cave = struct {
         return null;
     }
 
-    // Scans a rectangular region of space for unknown positions.
-    // Uses a number of threads to speed up the process.
+    /// Scans a rectangular region of space for unknown positions.
+    /// Uses a number of threads to speed up the process.
     fn findEmpty(self: Self, lowerLimit: Pos, upperLimit: Pos) !Pos {
         if (scanForUnknown(self, lowerLimit, upperLimit)) |p| {
             return p;
