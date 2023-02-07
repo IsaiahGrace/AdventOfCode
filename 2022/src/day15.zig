@@ -1,6 +1,8 @@
 const std = @import("std");
 const pc = @import("puzzleContext.zig");
 
+const AtomicBool = std.atomic.Atomic(bool);
+
 const Tile = enum {
     Empty,
     Beacon,
@@ -117,7 +119,7 @@ const Cave = struct {
     /// Scans a rectangle of space for a position with unknown coontent.
     /// Bounds are inclusive. Returns null if all positions are known.
     /// Returns the first unknown position found.
-    fn scanForUnknown(self: *const Self, lowerLimit: Pos, upperLimit: Pos) ?Pos {
+    fn scanForUnknown(self: *const Self, lowerLimit: Pos, upperLimit: Pos, exitEarly: *AtomicBool) ?Pos {
         var pos = lowerLimit;
         while (pos.y <= upperLimit.y) : (pos.y += 1) {
             while (pos.x <= upperLimit.x) : (pos.x += self.traverseSensorX(pos)) {
@@ -125,6 +127,7 @@ const Cave = struct {
                     return pos;
                 }
             }
+            if (exitEarly.load(.Unordered)) return null;
             pos.x = lowerLimit.x;
         }
         return null;
@@ -134,15 +137,16 @@ const Cave = struct {
     /// Uses a number of threads to speed up the process.
     fn findEmpty(self: Self, allocator: std.mem.Allocator, lowerLimit: Pos, upperLimit: Pos) !Pos {
         const numCPUs = try std.Thread.getCpuCount();
-        var pos: ?Pos = null;
+
+        // We need a way to devide up the problem space into semi-equal parts, but we don't want to scan past the upper limit.
+        // What we can do is create (numCPU - 1) equal slices, and then assign the THIS thread to the remaining area.
+        const sliceHeight: i64 = try std.math.divFloor(i64, (upperLimit.y - lowerLimit.y), @intCast(i64, numCPUs - 1));
 
         var threads = try allocator.alloc(std.Thread, numCPUs - 1);
         defer allocator.free(threads);
 
-        // We need a way to devide up the problem space into semi-equal parts, but we don't want to scan past the upper limit.
-        // What we can do is create (numCPU - 1) equal slices, and then assign the THIS thread to the remaining area.
-
-        const sliceHeight: i64 = try std.math.divFloor(i64, (upperLimit.y - lowerLimit.y), @intCast(i64, numCPUs - 1));
+        var pos: ?Pos = null;
+        var exitEarly: AtomicBool = AtomicBool.init(false);
 
         for (threads) |*t, uidx| {
             const i = @intCast(i64, uidx);
@@ -154,15 +158,15 @@ const Cave = struct {
                 .x = upperLimit.x,
                 .y = lowerLimit.y + ((i + 1) * sliceHeight) - 1,
             };
-            t.* = try std.Thread.spawn(.{}, threadWorker, .{ &self, lowerSliceLimit, upperSliceLimit, &pos });
+            t.* = try std.Thread.spawn(.{}, threadWorker, .{ &self, lowerSliceLimit, upperSliceLimit, &pos, &exitEarly });
         }
 
+        // THIS thread can search the remaining area
         const lowerRemainingLimit = Pos{
             .x = lowerLimit.x,
             .y = lowerLimit.y + (@intCast(i64, numCPUs - 1) * sliceHeight),
         };
-
-        threadWorker(&self, lowerRemainingLimit, upperLimit, &pos);
+        threadWorker(&self, lowerRemainingLimit, upperLimit, &pos, &exitEarly);
 
         for (threads) |t| {
             t.join();
@@ -177,11 +181,12 @@ const Cave = struct {
 };
 
 /// Does this have to be a 'static' function? This is what I would have to do in C++, but I don't know about zig!
-fn threadWorker(cave: *const Cave, lowerLimit: Pos, upperLimit: Pos, unknownPos: *?Pos) void {
+fn threadWorker(cave: *const Cave, lowerLimit: Pos, upperLimit: Pos, unknownPos: *?Pos, exitEarly: *AtomicBool) void {
     // We won't always write to unknownPos, because all the threads will get the same pointer for unknownPos.
     // The puzzle is only valid if there is one unknownPos, so this isn't a data saftey issue.
-    if (cave.scanForUnknown(lowerLimit, upperLimit)) |p| {
+    if (cave.scanForUnknown(lowerLimit, upperLimit, exitEarly)) |p| {
         unknownPos.* = p;
+        exitEarly.store(true, .Unordered);
     }
 }
 
