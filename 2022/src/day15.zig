@@ -133,13 +133,25 @@ const Cave = struct {
     /// Scans a rectangular region of space for unknown positions.
     /// Uses a number of threads to speed up the process.
     fn findEmpty(self: Self, lowerLimit: Pos, upperLimit: Pos) !Pos {
-        if (scanForUnknown(self, lowerLimit, upperLimit)) |p| {
+        const numCPUs = try std.Thread.getCpuCount();
+        _ = numCPUs;
+        var pos: ?Pos = null;
+
+        var thread = try std.Thread.spawn(.{}, threadWorker, .{ self, lowerLimit, upperLimit, &pos });
+        thread.join();
+
+        if (pos) |p| {
             return p;
         } else {
             return error.InvalidInputPuzzle;
         }
     }
 };
+
+/// Does this have to be a 'static' function? This is what I would have to do in C++, but I don't know about zig!
+fn threadWorker(cave: *const Cave, lowerLimit: Pos, upperLimit: Pos, unknownPos: *?Pos) void {
+    unknownPos.* = cave.scanForUnknown(lowerLimit, upperLimit);
+}
 
 pub fn solve(allocator: std.mem.Allocator, input: []u8, context: pc.Context) ![2]u64 {
     var cave = try Cave.init(allocator, input);
