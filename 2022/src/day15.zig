@@ -76,12 +76,12 @@ const Cave = struct {
         return cave;
     }
 
-    fn deinit(self: Self) void {
+    fn deinit(self: *const Self) void {
         self.allocator.free(self.sensors);
     }
 
     /// This function returns a number of +x units that can safely be traversed before an unknown tile might be encountered
-    fn traverseSensorX(self: Self, pos: Pos) i64 {
+    fn traverseSensorX(self: *const Self, pos: Pos) i64 {
         if (self.getSensorInRange(pos)) |s| {
             const dy = std.math.absInt(pos.y - s.pos.y) catch unreachable;
             const dx = pos.x - s.pos.x;
@@ -92,7 +92,7 @@ const Cave = struct {
     }
 
     /// Returns a sensor in range of the position.
-    fn getSensorInRange(self: Self, pos: Pos) ?Sensor {
+    fn getSensorInRange(self: *const Self, pos: Pos) ?Sensor {
         for (self.sensors) |s| {
             const distToSensor = dist(pos, s.pos);
             if (distToSensor <= s.distToBeacon) {
@@ -103,7 +103,7 @@ const Cave = struct {
     }
 
     /// Returns the tile type for the given position
-    fn get(self: Self, pos: Pos) Tile {
+    fn get(self: *const Self, pos: Pos) Tile {
         for (self.sensors) |s| {
             const distToSensor = dist(pos, s.pos);
             const distToBeacon = dist(pos, s.beacon);
@@ -117,7 +117,7 @@ const Cave = struct {
     /// Scans a rectangle of space for a position with unknown coontent.
     /// Bounds are inclusive. Returns null if all positions are known.
     /// Returns the first unknown position found.
-    fn scanForUnknown(self: Self, lowerLimit: Pos, upperLimit: Pos) ?Pos {
+    fn scanForUnknown(self: *const Self, lowerLimit: Pos, upperLimit: Pos) ?Pos {
         var pos = lowerLimit;
         while (pos.y <= upperLimit.y) : (pos.y += 1) {
             while (pos.x <= upperLimit.x) : (pos.x += self.traverseSensorX(pos)) {
@@ -189,7 +189,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8, context: pc.Context) ![2
     var cave = try Cave.init(allocator, input);
     defer cave.deinit();
 
-    const part1 = solveP1(cave, context.day15.row);
+    const part1 = solveP1(&cave, context.day15.row);
 
     const lowerLimit = Pos{
         .x = context.day15.lowerLimit,
@@ -215,7 +215,7 @@ inline fn dist(from: Pos, to: Pos) i64 {
     return absDx + absDy;
 }
 
-fn solveP1(cave: Cave, row: i64) u64 {
+fn solveP1(cave: *const Cave, row: i64) u64 {
     var count: u64 = 0;
     var pos = Pos{
         .x = cave.leftBoundary,
