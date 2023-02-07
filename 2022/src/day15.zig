@@ -132,13 +132,41 @@ const Cave = struct {
 
     /// Scans a rectangular region of space for unknown positions.
     /// Uses a number of threads to speed up the process.
-    fn findEmpty(self: Self, lowerLimit: Pos, upperLimit: Pos) !Pos {
+    fn findEmpty(self: Self, allocator: std.mem.Allocator, lowerLimit: Pos, upperLimit: Pos) !Pos {
         const numCPUs = try std.Thread.getCpuCount();
-        _ = numCPUs;
         var pos: ?Pos = null;
 
-        var thread = try std.Thread.spawn(.{}, threadWorker, .{ self, lowerLimit, upperLimit, &pos });
-        thread.join();
+        var threads = try allocator.alloc(std.Thread, numCPUs - 1);
+        defer allocator.free(threads);
+
+        // We need a way to devide up the problem space into semi-equal parts, but we don't want to scan past the upper limit.
+        // What we can do is create (numCPU - 1) equal slices, and then assign the THIS thread to the remaining area.
+
+        const sliceHeight: i64 = try std.math.divFloor(i64, (upperLimit.y - lowerLimit.y), @intCast(i64, numCPUs - 1));
+
+        for (threads) |*t, uidx| {
+            const i = @intCast(i64, uidx);
+            const lowerSliceLimit = Pos{
+                .x = lowerLimit.x,
+                .y = lowerLimit.y + (i * sliceHeight),
+            };
+            const upperSliceLimit = Pos{
+                .x = upperLimit.x,
+                .y = lowerLimit.y + ((i + 1) * sliceHeight) - 1,
+            };
+            t.* = try std.Thread.spawn(.{}, threadWorker, .{ &self, lowerSliceLimit, upperSliceLimit, &pos });
+        }
+
+        const lowerRemainingLimit = Pos{
+            .x = lowerLimit.x,
+            .y = lowerLimit.y + (@intCast(i64, numCPUs - 1) * sliceHeight),
+        };
+
+        threadWorker(&self, lowerRemainingLimit, upperLimit, &pos);
+
+        for (threads) |t| {
+            t.join();
+        }
 
         if (pos) |p| {
             return p;
@@ -150,7 +178,11 @@ const Cave = struct {
 
 /// Does this have to be a 'static' function? This is what I would have to do in C++, but I don't know about zig!
 fn threadWorker(cave: *const Cave, lowerLimit: Pos, upperLimit: Pos, unknownPos: *?Pos) void {
-    unknownPos.* = cave.scanForUnknown(lowerLimit, upperLimit);
+    // We won't always write to unknownPos, because all the threads will get the same pointer for unknownPos.
+    // The puzzle is only valid if there is one unknownPos, so this isn't a data saftey issue.
+    if (cave.scanForUnknown(lowerLimit, upperLimit)) |p| {
+        unknownPos.* = p;
+    }
 }
 
 pub fn solve(allocator: std.mem.Allocator, input: []u8, context: pc.Context) ![2]u64 {
@@ -167,7 +199,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8, context: pc.Context) ![2
         .x = context.day15.upperLimit,
         .y = context.day15.upperLimit,
     };
-    const distressLocation = try cave.findEmpty(lowerLimit, upperLimit);
+    const distressLocation = try cave.findEmpty(allocator, lowerLimit, upperLimit);
 
     const part2 = distressLocation.x * 4000000 + distressLocation.y;
 
