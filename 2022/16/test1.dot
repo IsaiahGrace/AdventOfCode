@@ -1,0 +1,16 @@
+strict graph {
+    rankdir=LR;
+    AA -- {DD II BB};
+    BB -- {CC AA};
+    CC -- {DD BB};
+    DD -- {CC AA EE};
+    EE -- {FF DD};
+    FF -- {EE GG};
+    GG -- {FF HH};
+    HH -- {GG};
+    II -- {AA JJ};
+    JJ -- {II};
+    { rank=same; AA, II, JJ }
+    { rank=same; DD, CC, BB }
+    { rank=same; EE, FF, GG, HH }
+}
