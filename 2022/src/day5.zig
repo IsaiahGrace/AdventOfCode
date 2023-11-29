@@ -25,7 +25,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2][]u8 {
         allocator.free(stacksP2);
     }
 
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
     while (lines.next().?[1] != '1') {}
 
     while (lines.next()) |line| {
@@ -40,13 +40,13 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2][]u8 {
 
     const part1 = try allocator.alloc(u8, stacksP1.len);
     errdefer allocator.free(part1);
-    for (stacksP1) |stack, i| {
+    for (stacksP1, 0..) |stack, i| {
         part1[i] = stack.items[stack.items.len - 1];
     }
 
     const part2 = try allocator.alloc(u8, stacksP2.len);
     errdefer allocator.free(part1);
-    for (stacksP2) |stack, i| {
+    for (stacksP2, 0..) |stack, i| {
         part2[i] = stack.items[stack.items.len - 1];
     }
 
@@ -68,7 +68,7 @@ fn executeSingleMove(stacks: *[]Stack, move: Move) !void {
 
 fn parseMove(line: []const u8) !Move {
     var move: Move = undefined;
-    var tokens = std.mem.tokenize(u8, line, " ");
+    var tokens = std.mem.tokenizeScalar(u8, line, ' ');
     if (!std.mem.eql(u8, tokens.next().?, "move")) {
         return error.InvalidPuzzleInput;
     }
@@ -91,7 +91,7 @@ fn parseMove(line: []const u8) !Move {
 }
 
 fn printStacks(stacks: *const []Stack) void {
-    for (stacks.*) |stack, i| {
+    for (stacks.*, 0..) |stack, i| {
         std.log.info("Stack: {d} = {s}", .{ i, stack.items });
     }
 }
@@ -104,7 +104,7 @@ fn constructStacks(allocator: std.mem.Allocator, input: []u8) ![]Stack {
     }
 
     // Now that we have stacks to place our crates in, we need to parse the input file:
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
     while (lines.next()) |line| {
         if (line[1] == '1') {
             break;
@@ -133,7 +133,7 @@ fn getNumberOfStacks(input: []u8) !u8 {
     // This seems like a relatively fragile way to parse the input, but it is safe to make these
     // assumptions because we have a guarantee that the input is well-formed.
 
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
     const indexLine = indexLine: {
         while (lines.next()) |line| {
             if (line[1] == '1') {
@@ -143,7 +143,7 @@ fn getNumberOfStacks(input: []u8) !u8 {
         return error.InvalidPuzzleInput;
     };
 
-    var stacks = std.mem.tokenize(u8, indexLine, " ");
+    var stacks = std.mem.tokenizeScalar(u8, indexLine, ' ');
     var numStacks: u8 = 0;
     while (stacks.next() != null) {
         numStacks += 1;

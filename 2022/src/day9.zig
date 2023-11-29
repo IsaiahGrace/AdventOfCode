@@ -50,7 +50,7 @@ fn solveP1(allocator: std.mem.Allocator, input: []u8) !u32 {
 
     try visitedPoints.put(rope.tail[0], {});
 
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
     while (lines.next()) |line| {
         const cmd = try getCommand(line);
         var i: u32 = 0;
@@ -61,7 +61,7 @@ fn solveP1(allocator: std.mem.Allocator, input: []u8) !u32 {
         }
     }
 
-    return @intCast(u32, visitedPoints.count());
+    return @as(u32, @intCast(visitedPoints.count()));
 }
 
 fn solveP2(allocator: std.mem.Allocator, input: []u8) !u32 {
@@ -83,7 +83,7 @@ fn solveP2(allocator: std.mem.Allocator, input: []u8) !u32 {
 
     try visitedPoints.put(rope.tail[8], {});
 
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
     while (lines.next()) |line| {
         const cmd = try getCommand(line);
         var i: u32 = 0;
@@ -105,7 +105,7 @@ fn solveP2(allocator: std.mem.Allocator, input: []u8) !u32 {
         }
     }
 
-    return @intCast(u32, visitedPoints.count());
+    return @as(u32, @intCast(visitedPoints.count()));
 }
 
 fn moveRope(rope: *Rope, dir: Direction) void {
@@ -167,9 +167,9 @@ fn moveSegment(head: Point, tail: Point) Point {
 }
 
 fn getCommand(line: []const u8) !Command {
-    var tokens = std.mem.tokenize(u8, line, " ");
+    var tokens = std.mem.tokenizeScalar(u8, line, ' ');
     var command: Command = undefined;
-    command.dir = @intToEnum(Direction, tokens.next().?[0]);
+    command.dir = @enumFromInt(tokens.next().?[0]);
     command.times = try std.fmt.parseUnsigned(u32, tokens.next().?, 10);
     return command;
 }

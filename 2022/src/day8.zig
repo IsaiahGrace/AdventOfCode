@@ -44,8 +44,8 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
 }
 
 fn calculateScores(forest: [][]Tree) void {
-    for (forest) |row, y| {
-        for (row) |_, x| {
+    for (forest, 0..) |row, y| {
+        for (row, 0..) |_, x| {
             setScore(forest, y, x);
         }
     }
@@ -239,12 +239,12 @@ fn printForest(allocator: std.mem.Allocator, forest: []const []const Tree) !void
 }
 
 fn loadForest(forest: [][]Tree, input: []const u8) void {
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
 
     var row: usize = 0;
     while (lines.next()) |line| : (row += 1) {
-        for (line) |char, col| {
-            forest[row][col].height = @intCast(u4, char - '0');
+        for (line, 0..) |char, col| {
+            forest[row][col].height = @as(u4, @intCast(char - '0'));
             forest[row][col].visible = false;
             forest[row][col].score = 0;
         }
@@ -252,9 +252,9 @@ fn loadForest(forest: [][]Tree, input: []const u8) void {
 }
 
 fn findDimensions(input: []const u8) [2]u32 {
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
 
-    const cols = @intCast(u32, lines.next().?.len);
+    const cols = @as(u32, @intCast(lines.next().?.len));
     lines.reset();
 
     var rows: u32 = 0;

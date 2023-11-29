@@ -123,14 +123,14 @@ fn parseMonkey(allocator: std.mem.Allocator, input: []const u8) !Monkey {
     monkey.items = std.ArrayList(u64).init(allocator);
     monkey.inspectedCount = 0;
 
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
 
     // This line is ignored because all monkeys are defined in order.
     const monkeyLine = lines.next().?;
     _ = monkeyLine;
 
     const itemLine = lines.next().?;
-    var itemTokens = std.mem.tokenize(u8, itemLine, ":,");
+    var itemTokens = std.mem.tokenizeSequence(u8, itemLine, ":,");
     _ = itemTokens.next().?;
     while (itemTokens.next()) |item| {
         const trimmedItem = std.mem.trim(u8, item, " ");
@@ -138,21 +138,21 @@ fn parseMonkey(allocator: std.mem.Allocator, input: []const u8) !Monkey {
     }
 
     const operationLine = lines.next().?;
-    var opTokens = std.mem.tokenize(u8, operationLine, "=");
+    var opTokens = std.mem.tokenizeScalar(u8, operationLine, '=');
     _ = opTokens.next().?;
     const operation = opTokens.next().?;
     if (std.mem.count(u8, operation, "old") == 2) {
         monkey.operation.operator = .square;
         monkey.operation.operand = 0;
     } else {
-        var args = std.mem.tokenize(u8, operation, " ");
+        var args = std.mem.tokenizeScalar(u8, operation, ' ');
         _ = args.next().?;
-        monkey.operation.operator = @intToEnum(Operators, args.next().?[0]);
+        monkey.operation.operator = @enumFromInt(args.next().?[0]);
         monkey.operation.operand = try std.fmt.parseUnsigned(u64, args.next().?, 10);
     }
 
     const testLine = lines.next().?;
-    var testLineTokens = std.mem.tokenize(u8, testLine, " ");
+    var testLineTokens = std.mem.tokenizeScalar(u8, testLine, ' ');
     var last = testLineTokens.next().?;
     while (testLineTokens.next()) |token| {
         last = token;
@@ -160,7 +160,7 @@ fn parseMonkey(allocator: std.mem.Allocator, input: []const u8) !Monkey {
     monkey.testDivisibleBy = try std.fmt.parseUnsigned(u64, last, 10);
 
     const trueMonkeyLine = lines.next().?;
-    var trueMonkeyTokens = std.mem.tokenize(u8, trueMonkeyLine, " ");
+    var trueMonkeyTokens = std.mem.tokenizeScalar(u8, trueMonkeyLine, ' ');
     last = trueMonkeyTokens.next().?;
     while (trueMonkeyTokens.next()) |token| {
         last = token;
@@ -168,7 +168,7 @@ fn parseMonkey(allocator: std.mem.Allocator, input: []const u8) !Monkey {
     monkey.trueMonkey = try std.fmt.parseUnsigned(usize, last, 10);
 
     const falseMonkeyLine = lines.next().?;
-    var falseMonkeyTokens = std.mem.tokenize(u8, falseMonkeyLine, " ");
+    var falseMonkeyTokens = std.mem.tokenizeScalar(u8, falseMonkeyLine, ' ');
     last = falseMonkeyTokens.next().?;
     while (falseMonkeyTokens.next()) |token| {
         last = token;

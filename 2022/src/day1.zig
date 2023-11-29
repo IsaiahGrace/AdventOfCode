@@ -18,7 +18,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
         }
     }
 
-    std.sort.sort(u32, elves.items, {}, asc);
+    std.mem.sort(u32, elves.items, {}, asc);
 
     const part1 = elves.items[elves.items.len - 1];
     const part2 = elves.items[elves.items.len - 1] + elves.items[elves.items.len - 2] + elves.items[elves.items.len - 3];

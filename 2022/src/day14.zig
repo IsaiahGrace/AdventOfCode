@@ -22,19 +22,19 @@ const Cave = struct {
         };
         errdefer cave.map.deinit();
 
-        var lines = std.mem.tokenize(u8, input, "\n");
+        var lines = std.mem.tokenizeScalar(u8, input, '\n');
         while (lines.next()) |line| {
             var coords = std.mem.split(u8, line, " -> ");
 
             // Special case for the first coord on a line:
-            var startNumbers = std.mem.tokenize(u8, coords.next().?, ",");
+            var startNumbers = std.mem.tokenizeScalar(u8, coords.next().?, ',');
             var start = Coord{
                 .x = try std.fmt.parseUnsigned(isize, startNumbers.next().?, 10),
                 .y = try std.fmt.parseUnsigned(isize, startNumbers.next().?, 10),
             };
 
             while (coords.next()) |coord| {
-                var numbers = std.mem.tokenize(u8, coord, ",");
+                var numbers = std.mem.tokenizeScalar(u8, coord, ',');
                 const end = Coord{
                     .x = try std.fmt.parseUnsigned(isize, numbers.next().?, 10),
                     .y = try std.fmt.parseUnsigned(isize, numbers.next().?, 10),

@@ -8,12 +8,12 @@ const intersectionType = struct {
 pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     _ = allocator;
 
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
 
     var part1: u32 = 0;
     var part2: u32 = 0;
     while (lines.next()) |line| {
-        var assignemts = std.mem.tokenize(u8, line, ",");
+        var assignemts = std.mem.tokenizeScalar(u8, line, ',');
         const set1 = assignemts.next().?;
         const set2 = assignemts.next().?;
         const intersections = try findIntersections(set1, set2);
@@ -29,8 +29,8 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
 }
 
 fn findIntersections(set1: []const u8, set2: []const u8) !intersectionType {
-    var set1Tokens = std.mem.tokenize(u8, set1, "-");
-    var set2Tokens = std.mem.tokenize(u8, set2, "-");
+    var set1Tokens = std.mem.tokenizeScalar(u8, set1, '-');
+    var set2Tokens = std.mem.tokenizeScalar(u8, set2, '-');
 
     const set1Bounds = [2]u32{ try std.fmt.parseInt(u32, set1Tokens.next().?, 10), try std.fmt.parseInt(u32, set1Tokens.next().?, 10) };
     const set2Bounds = [2]u32{ try std.fmt.parseInt(u32, set2Tokens.next().?, 10), try std.fmt.parseInt(u32, set2Tokens.next().?, 10) };

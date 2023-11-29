@@ -2,7 +2,7 @@ const std = @import("std");
 
 pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     _ = allocator;
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
 
     var part1: u32 = 0;
     while (lines.next()) |line| {

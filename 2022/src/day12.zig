@@ -249,7 +249,7 @@ fn compareNodes(graph: Graph, a: Coord, b: Coord) std.math.Order {
 fn parseGraph(allocator: std.mem.Allocator, input: []u8) !Graph {
     var graph: Graph = undefined;
 
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
 
     // Find the number of rows and collumns:
     const columns = lines.next().?.len;

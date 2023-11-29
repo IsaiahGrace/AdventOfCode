@@ -52,8 +52,8 @@ const CPU = struct {
             .signalStrengthSum = 0,
             .screen = undefined,
         };
-        for (self.screen.rows) |*row| {
-            for (row.*) |*col| {
+        for (&self.screen.rows) |*row| {
+            for (&row.*) |*col| {
                 col.* = '.';
             }
         }
@@ -74,7 +74,7 @@ const CPU = struct {
 
     fn tick(self: *Self) void {
         if ((self.clk + 20) % 40 == 0) {
-            const signalStrength = @intCast(i32, self.clk) * self.x;
+            const signalStrength = @as(i32, @intCast(self.clk)) * self.x;
             //std.log.info("Clk: {:3<}  x: {d} signalStrength: {d}", .{ self.clk, self.x, signalStrength });
             self.signalStrengthSum += signalStrength;
         } else {
@@ -97,7 +97,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]i32 {
 
     var cpu = CPU.init();
 
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
     while (lines.next()) |line| {
         const op = try getOpcode(line);
         //std.log.info("{s}", .{line});
@@ -108,7 +108,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]i32 {
 }
 
 fn getOpcode(line: []const u8) !Opcode {
-    var tokens = std.mem.tokenize(u8, line, " ");
+    var tokens = std.mem.tokenizeScalar(u8, line, ' ');
     const op = tokens.next().?;
     if (std.mem.eql(u8, op, "noop")) {
         return Opcode{

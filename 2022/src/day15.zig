@@ -40,7 +40,7 @@ const Cave = struct {
         var sensors = std.ArrayList(Sensor).init(allocator);
         errdefer sensors.deinit();
 
-        var lines = std.mem.tokenize(u8, input, "\n");
+        var lines = std.mem.tokenizeScalar(u8, input, '\n');
         while (lines.next()) |line| {
             const sensorXeql = std.mem.indexOfScalar(u8, line, '=').?;
             const sensorXcomma = std.mem.indexOfScalarPos(u8, line, sensorXeql, ',').?;
@@ -74,7 +74,7 @@ const Cave = struct {
         }
         std.debug.assert(cave.leftBoundary < cave.rightBoundary);
 
-        cave.sensors = sensors.toOwnedSlice();
+        cave.sensors = try sensors.toOwnedSlice();
         return cave;
     }
 
@@ -140,7 +140,7 @@ const Cave = struct {
 
         // We need a way to devide up the problem space into semi-equal parts, but we don't want to scan past the upper limit.
         // What we can do is create (numCPU - 1) equal slices, and then assign the THIS thread to the remaining area.
-        const sliceHeight: i64 = try std.math.divFloor(i64, (upperLimit.y - lowerLimit.y), @intCast(i64, numCPUs - 1));
+        const sliceHeight: i64 = try std.math.divFloor(i64, (upperLimit.y - lowerLimit.y), @as(i64, @intCast(numCPUs - 1)));
 
         var threads = try allocator.alloc(std.Thread, numCPUs - 1);
         defer allocator.free(threads);
@@ -148,8 +148,8 @@ const Cave = struct {
         var pos: ?Pos = null;
         var exitEarly: AtomicBool = AtomicBool.init(false);
 
-        for (threads) |*t, uidx| {
-            const i = @intCast(i64, uidx);
+        for (threads, 0..) |*t, uidx| {
+            const i = @as(i64, @intCast(uidx));
             const lowerSliceLimit = Pos{
                 .x = lowerLimit.x,
                 .y = lowerLimit.y + (i * sliceHeight),
@@ -164,7 +164,7 @@ const Cave = struct {
         // THIS thread can search the remaining area
         const lowerRemainingLimit = Pos{
             .x = lowerLimit.x,
-            .y = lowerLimit.y + (@intCast(i64, numCPUs - 1) * sliceHeight),
+            .y = lowerLimit.y + (@as(i64, @intCast(numCPUs - 1)) * sliceHeight),
         };
         threadWorker(&self, lowerRemainingLimit, upperLimit, &pos, &exitEarly);
 
@@ -208,7 +208,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8, context: pc.Context) ![2
 
     const part2 = distressLocation.x * 4000000 + distressLocation.y;
 
-    return [2]u64{ @intCast(u64, part1), @intCast(u64, part2) };
+    return [2]u64{ @as(u64, @intCast(part1)), @as(u64, @intCast(part2)) };
 }
 
 inline fn dist(from: Pos, to: Pos) i64 {

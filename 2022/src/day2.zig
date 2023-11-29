@@ -15,7 +15,7 @@ const handShape = enum {
 pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     _ = allocator;
 
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
 
     // Part 1
     var scoreP1: u32 = 0;
@@ -35,7 +35,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
 }
 
 fn getScoreP1(line: []const u8) !u32 {
-    var plays = std.mem.tokenize(u8, line, " ");
+    var plays = std.mem.tokenizeScalar(u8, line, ' ');
 
     const opponent: handShape = try parseOpponent(plays.next().?[0]);
 
@@ -57,7 +57,7 @@ fn getScoreP1(line: []const u8) !u32 {
 }
 
 fn getScoreP2(line: []const u8) !u32 {
-    var plays = std.mem.tokenize(u8, line, " ");
+    var plays = std.mem.tokenizeScalar(u8, line, ' ');
 
     const opponent: handShape = try parseOpponent(plays.next().?[0]);
 

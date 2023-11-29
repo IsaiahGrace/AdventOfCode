@@ -40,10 +40,10 @@ fn solveP1(allocator: std.mem.Allocator, root: *Dir) !u32 {
     defer sizes.deinit();
     try appendDirSizes(&sizes, root);
 
-    std.sort.sort(u32, sizes.items, {}, asc_u32);
+    std.mem.sort(u32, sizes.items, {}, asc_u32);
 
     var smallSizes: []u32 = undefined;
-    for (sizes.items) |size, i| {
+    for (sizes.items, 0..) |size, i| {
         if (size > 100000) {
             smallSizes = sizes.items[0..i];
             break;
@@ -69,7 +69,7 @@ fn solveP2(allocator: std.mem.Allocator, root: *Dir) !u32 {
     defer sizes.deinit();
     try appendDirSizes(&sizes, root);
 
-    std.sort.sort(u32, sizes.items, {}, asc_u32);
+    std.mem.sort(u32, sizes.items, {}, asc_u32);
 
     for (sizes.items) |size| {
         if (size > targetFreeSize) {
@@ -106,12 +106,12 @@ fn initRoot(allocator: std.mem.Allocator, input: []u8) !*Dir {
     root.children = Children.init(allocator);
     root.files = Files.init(allocator);
 
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
     var cwd: *Dir = root;
 
     // Special case to parse the special first line: '$ cd /'
     const firstLine = lines.next().?;
-    var firstLineTokens = std.mem.tokenize(u8, firstLine, " ");
+    var firstLineTokens = std.mem.tokenizeScalar(u8, firstLine, ' ');
     if (!std.mem.eql(u8, firstLineTokens.next().?, "$")) {
         return error.InvalidPuzzleInput;
     }
@@ -125,7 +125,7 @@ fn initRoot(allocator: std.mem.Allocator, input: []u8) !*Dir {
     }
 
     while (lines.next()) |line| {
-        var tokens = std.mem.tokenize(u8, line, " ");
+        var tokens = std.mem.tokenizeScalar(u8, line, ' ');
         if (tokens.next().?[0] == '$') {
             const cmd = tokens.next().?;
             if (std.mem.eql(u8, cmd, "cd")) {
@@ -154,13 +154,13 @@ fn cd(cwd: *Dir, target: []const u8) !*Dir {
     }
 }
 
-fn ls(allocator: std.mem.Allocator, cwd: *Dir, linesArg: std.mem.TokenIterator(u8)) !void {
+fn ls(allocator: std.mem.Allocator, cwd: *Dir, linesArg: std.mem.TokenIterator(u8, .scalar)) !void {
     // Function arguments are immutable in Zig, so we need to make a copy of the iterator.
     // This is because the compiler is free to pass either a copy of or a pointer to the args.
     var lines = linesArg;
     while (lines.next()) |line| {
         if (line[0] == '$') break;
-        var tokens = std.mem.tokenize(u8, line, " ");
+        var tokens = std.mem.tokenizeScalar(u8, line, ' ');
         const dirOrSize = tokens.next().?;
         const name = tokens.next().?;
 

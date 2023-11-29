@@ -18,7 +18,7 @@ fn solveN(input: []const u8, count: usize) !u32 {
             charSet |= @as(u256, 1) << input[i + j];
         }
         if (@popCount(charSet) == count) {
-            return @intCast(u32, i + count);
+            return @as(u32, @intCast(i + count));
         }
     }
     return error.InvalidPuzzleInput;
@@ -60,7 +60,7 @@ fn solveNBitSet(input: []const u8, count: usize) !u32 {
             bitSet.set(input[i + j]);
         }
         if (bitSet.count() == count) {
-            return @intCast(u32, i + count);
+            return @as(u32, @intCast(i + count));
         }
     }
     return error.InvalidPuzzleInput;

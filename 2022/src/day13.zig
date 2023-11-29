@@ -36,11 +36,11 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) ![2]u64 {
     try packets.append(divPacket2);
     try packets.append(divPacket6);
 
-    std.sort.insertionSort(Packet, packets.items, allocator, packetLessThan);
+    std.mem.sort(Packet, packets.items, allocator, packetLessThan);
 
     var divPacket2Index: u64 = 0;
     var divPacket6Index: u64 = 0;
-    for (packets.items) |p, i| {
+    for (packets.items, 0..) |p, i| {
         if (orderPackets(allocator, p, divPacket2) == std.math.Order.eq) {
             divPacket2Index = i;
         }
@@ -66,7 +66,7 @@ fn solveP1(allocator: std.mem.Allocator, signal: Signal) !u64 {
     var orderedPairs = std.ArrayList(u64).init(allocator);
     defer orderedPairs.deinit();
 
-    for (signal.items) |p, i| {
+    for (signal.items, 0..) |p, i| {
         if (orderPackets(allocator, p.left, p.right) == std.math.Order.lt) {
             try orderedPairs.append(i + 1);
         }
@@ -118,7 +118,7 @@ fn parseSignal(allocator: std.mem.Allocator, input: []const u8) !Signal {
 
     var pairs = std.mem.split(u8, input, "\n\n");
     while (pairs.next()) |pair| {
-        var lines = std.mem.tokenize(u8, pair, "\n");
+        var lines = std.mem.tokenizeScalar(u8, pair, '\n');
         const left = lines.next().?;
         const right = lines.next().?;
         if (lines.next() != null) return error.InvalidPuzzleInput;
