@@ -1,7 +1,9 @@
 mod day01;
+mod day02;
 mod puzzle;
 
 use crate::day01::Day01;
+use crate::day02::Day02;
 use crate::puzzle::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -21,8 +23,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let inpuf_file_path = format!("{}/{}", day, input_file);
     let input = std::fs::read_to_string(inpuf_file_path)?;
 
-    let puzzle_solver = match day.as_str() {
-        "01" => Day01::from(input),
+    let puzzle_solver: Box<dyn Solve> = match day.as_str() {
+        "01" => Box::new(Day01::from(input)),
+        "02" => Box::new(Day02::from(input)),
         _ => return Err("Day given is not implemented.".into()),
     };
 
