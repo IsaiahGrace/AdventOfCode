@@ -3,12 +3,9 @@ mod puzzle;
 
 use crate::day01::Day01;
 use crate::puzzle::*;
-use std::env;
-use std::error;
-use std::fs;
 
-fn main() -> Result<(), Box<dyn error::Error>> {
-    let mut args = env::args();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut args = std::env::args();
 
     // The first argument is the program name
     _ = args.next();
@@ -22,7 +19,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         .expect("Please specify the input file in the day directory.");
 
     let inpuf_file_path = format!("{}/{}", day, input_file);
-    let input = fs::read_to_string(inpuf_file_path)?;
+    let input = std::fs::read_to_string(inpuf_file_path)?;
 
     let puzzle_solver = match day.as_str() {
         "01" => Day01::from(input),
@@ -33,21 +30,4 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 
     println!("{}", solution);
     return Ok(());
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn day_01_01() {
-        let solver: Day01 = fs::read_to_string("01/01").unwrap().into();
-        assert_eq!(solver.solve().unwrap(), Solution::Integer(142, 0));
-    }
-
-    #[test]
-    fn day_01_input() {
-        let solver: Day01 = fs::read_to_string("01/input").unwrap().into();
-        assert_eq!(solver.solve().unwrap(), Solution::Integer(55488, 0));
-    }
 }
