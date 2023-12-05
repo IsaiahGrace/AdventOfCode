@@ -1,9 +1,11 @@
 mod day01;
 mod day02;
+mod day03;
 mod puzzle;
 
 use crate::day01::Day01;
 use crate::day02::Day02;
+use crate::day03::Day03;
 use crate::puzzle::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -26,6 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let puzzle_solver: Box<dyn Solve> = match day.as_str() {
         "01" => Box::new(Day01::from(input)),
         "02" => Box::new(Day02::from(input)),
+        "03" => Box::new(Day03::from(input)),
         _ => return Err("Day given is not implemented.".into()),
     };
 

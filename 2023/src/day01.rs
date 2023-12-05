@@ -16,12 +16,11 @@ fn get_calibration(line: &str) -> i64 {
 
 impl Day01 {
     fn solve_p1(&self) -> i64 {
-        return self.input.lines().map(get_calibration).sum();
+        self.input.lines().map(get_calibration).sum()
     }
 
     fn solve_p2(&self) -> i64 {
-        return self
-            .input
+        self.input
             // Note the strange replace strings. This is to account for partial overlaps in the input data.
             .replace("one", "o1e") // twone, oneight
             .replace("two", "t2o") // eightwo, twone
@@ -34,7 +33,7 @@ impl Day01 {
             .replace("nine", "n9e") // sevenine, nineight
             .lines()
             .map(get_calibration)
-            .sum();
+            .sum()
     }
 }
 
@@ -46,7 +45,7 @@ impl From<String> for Day01 {
 
 impl puzzle::Solve for Day01 {
     fn solve(&self) -> Result<puzzle::Solution, Box<dyn std::error::Error>> {
-        return Ok(puzzle::Solution::Integer(self.solve_p1(), self.solve_p2()));
+        Ok(puzzle::Solution::Integer(self.solve_p1(), self.solve_p2()))
     }
 }
 
