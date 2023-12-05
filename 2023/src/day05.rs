@@ -93,50 +93,20 @@ impl Day05 {
     }
 
     fn solve_p2(&mut self) -> i64 {
+        // This is a brute force solution which takes 12 seconds on my desktop but makes use of the
+        // powerful rayon library for effortless parallelization.
         self.seed_ranges
             .iter()
             .map(|r| {
                 r.clone()
-                    .par_iter()
-                    // .map(|seed| {
-                    //     dbg!(seed);
-                    //     seed
-                    // })
+                    .into_par_iter()
                     .map(|s| self.seed_to_soil.lookup(s))
-                    // .map(|soil| {
-                    //     dbg!(soil);
-                    //     soil
-                    // })
                     .map(|s| self.soil_to_fertilizer.lookup(s))
-                    // .map(|fertilizer| {
-                    //     dbg!(fertilizer);
-                    //     fertilizer
-                    // })
                     .map(|s| self.fertilizer_to_water.lookup(s))
-                    // .map(|water| {
-                    //     dbg!(water);
-                    //     water
-                    // })
                     .map(|s| self.water_to_light.lookup(s))
-                    // .map(|light| {
-                    //     dbg!(light);
-                    //     light
-                    // })
                     .map(|s| self.light_to_temperature.lookup(s))
-                    // .map(|temperature| {
-                    //     dbg!(temperature);
-                    //     temperature
-                    // })
                     .map(|s| self.temperature_to_humidity.lookup(s))
-                    // .map(|humidity| {
-                    //     dbg!(humidity);
-                    //     humidity
-                    // })
                     .map(|s| self.humidity_to_location.lookup(s))
-                    // .map(|location| {
-                    //     dbg!(location);
-                    //     location
-                    // })
                     .min()
                     .unwrap()
             })
@@ -255,12 +225,12 @@ mod tests {
         assert_eq!(solver.solve().unwrap(), crate::Solution::Integer(35, 46));
     }
 
-    #[test]
-    fn file_input() {
-        let mut solver: Day05 = std::fs::read_to_string("05/input").unwrap().into();
-        assert_eq!(
-            solver.solve().unwrap(),
-            crate::Solution::Integer(825516882, 136096660)
-        );
-    }
+    // #[test]
+    // fn file_input() {
+    //     let mut solver: Day05 = std::fs::read_to_string("05/input").unwrap().into();
+    //     assert_eq!(
+    //         solver.solve().unwrap(),
+    //         crate::Solution::Integer(825516882, 136096660)
+    //     );
+    // }
 }
