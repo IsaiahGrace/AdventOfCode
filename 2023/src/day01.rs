@@ -44,7 +44,7 @@ impl From<String> for Day01 {
 }
 
 impl puzzle::Solve for Day01 {
-    fn solve(&self) -> Result<puzzle::Solution, Box<dyn std::error::Error>> {
+    fn solve(&mut self) -> Result<puzzle::Solution, Box<dyn std::error::Error>> {
         Ok(puzzle::Solution::Integer(self.solve_p1(), self.solve_p2()))
     }
 }
@@ -56,19 +56,19 @@ mod tests {
 
     #[test]
     fn file_01() {
-        let solver: Day01 = std::fs::read_to_string("01/01").unwrap().into();
+        let mut solver: Day01 = std::fs::read_to_string("01/01").unwrap().into();
         assert_eq!(solver.solve().unwrap(), crate::Solution::Integer(142, 142));
     }
 
     #[test]
     fn file_02() {
-        let solver: Day01 = std::fs::read_to_string("01/02").unwrap().into();
+        let mut solver: Day01 = std::fs::read_to_string("01/02").unwrap().into();
         assert_eq!(solver.solve().unwrap(), crate::Solution::Integer(209, 281));
     }
 
     #[test]
     fn file_input() {
-        let solver: Day01 = std::fs::read_to_string("01/input").unwrap().into();
+        let mut solver: Day01 = std::fs::read_to_string("01/input").unwrap().into();
         assert_eq!(
             solver.solve().unwrap(),
             crate::Solution::Integer(55488, 55614)

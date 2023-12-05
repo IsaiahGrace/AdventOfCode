@@ -1,4 +1,5 @@
 use crate::puzzle;
+use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum State {
@@ -9,16 +10,21 @@ enum State {
 
 pub struct Day03 {
     schematic: Vec<String>,
+    gears: HashMap<(usize, usize), (i64, i64)>,
 }
 
 impl Day03 {
-    fn solve_p1(&self) -> i64 {
+    fn solve_p1(&mut self) -> i64 {
         (1..(self.schematic.len() - 1))
             .map(|line_num| self.read_line(line_num).into_iter().sum::<i64>())
             .sum()
     }
 
-    fn read_line(&self, line_num: usize) -> Vec<i64> {
+    fn solve_p2(&mut self) -> i64 {
+        self.gears.drain().map(|(_k, v)| v.0 * v.1).sum()
+    }
+
+    fn read_line(&mut self, line_num: usize) -> Vec<i64> {
         let mut byte_start: usize = 0;
         let mut byte_end: usize = 0;
 
@@ -51,16 +57,29 @@ impl Day03 {
                     }
                 },
                 State::Validating => {
-                    if (line_num - 1..=line_num + 1)
-                        .map(|l| &self.schematic[l][byte_start..=byte_end])
-                        .any(|s| {
-                            s.chars().any(|c| match c {
-                                '#' | '%' | '&' | '*' | '+' | '-' | '/' | '=' | '@' | '$' => true,
-                                _ => false,
-                            })
-                        })
-                    {
-                        parts.push(part_number);
+                    for l in line_num - 1..=line_num + 1 {
+                        let s = &self.schematic[l][byte_start..=byte_end];
+                        for (col, c) in s.chars().enumerate() {
+                            match c {
+                                '*' => {
+                                    parts.push(part_number);
+                                    let pos = (l, byte_start + col);
+                                    let mut gear_parts = self.gears.remove(&pos).unwrap_or((0, 0));
+                                    if gear_parts.0 == 0 {
+                                        gear_parts.0 = part_number;
+                                    } else if gear_parts.1 == 0 {
+                                        gear_parts.1 = part_number;
+                                    } else {
+                                        panic!("A third part attached to a gear!?");
+                                    }
+                                    self.gears.insert(pos, gear_parts);
+                                }
+                                '#' | '%' | '&' | '+' | '-' | '/' | '=' | '@' | '$' => {
+                                    parts.push(part_number);
+                                }
+                                _ => {}
+                            }
+                        }
                     }
                     idx += 1;
                     part_number = 0;
@@ -86,13 +105,19 @@ impl From<String> for Day03 {
             line.push('.');
         }
 
-        Day03 { schematic }
+        Day03 {
+            schematic,
+            gears: HashMap::new(),
+        }
     }
 }
 
 impl puzzle::Solve for Day03 {
-    fn solve(&self) -> Result<puzzle::Solution, Box<dyn std::error::Error>> {
-        Ok(puzzle::Solution::Integer(self.solve_p1(), 0))
+    fn solve(&mut self) -> Result<puzzle::Solution, Box<dyn std::error::Error>> {
+        // We need to call solve_p1() before we can call solve_p2().
+        let part1 = self.solve_p1();
+        let part2 = self.solve_p2();
+        Ok(puzzle::Solution::Integer(part1, part2))
     }
 }
 
@@ -103,13 +128,19 @@ mod tests {
 
     #[test]
     fn file_01() {
-        let solver: Day03 = std::fs::read_to_string("03/01").unwrap().into();
-        assert_eq!(solver.solve().unwrap(), crate::Solution::Integer(4361, 0));
+        let mut solver: Day03 = std::fs::read_to_string("03/01").unwrap().into();
+        assert_eq!(
+            solver.solve().unwrap(),
+            crate::Solution::Integer(4361, 467835)
+        );
     }
 
     #[test]
     fn file_input() {
-        let solver: Day03 = std::fs::read_to_string("03/input").unwrap().into();
-        assert_eq!(solver.solve().unwrap(), crate::Solution::Integer(546563, 0));
+        let mut solver: Day03 = std::fs::read_to_string("03/input").unwrap().into();
+        assert_eq!(
+            solver.solve().unwrap(),
+            crate::Solution::Integer(546563, 91031374)
+        );
     }
 }

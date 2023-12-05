@@ -15,5 +15,5 @@ impl fmt::Display for Solution {
 }
 
 pub trait Solve {
-    fn solve(&self) -> Result<Solution, Box<dyn error::Error>>;
+    fn solve(&mut self) -> Result<Solution, Box<dyn error::Error>>;
 }
