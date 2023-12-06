@@ -21,71 +21,40 @@ impl Intersection<Range<i64>> for Range<i64> {
     /// Returns the intersection, or overlap, of two ranges.
     /// If there is not overlap in the ranges, then an empty range where end > start is returned.
     fn intersection(&self, other: &Range<i64>) -> Self {
-        println!(
-            "intersection: {:?}",
-            std::cmp::max(self.start, other.start)..std::cmp::min(self.end, other.end)
-        );
         std::cmp::max(self.start, other.start)..std::cmp::min(self.end, other.end)
     }
 }
 
-// trait Remainder<T = Self> {
-//     fn remainder(&self, other: &T) -> Self;
-// }
-
-// impl Remainder<Range<i64>> for Range<i64> {
-//     /// Returns the remaining range after removing other range from self.
-//     /// If `other.end > self.end` then the empty range `0..0` is returned.
-//     fn remainder(&self, other: &Range<i64>) -> Self {
-//         // dbg!("REMAINDER");
-//         // dbg!(self);
-//         // dbg!(other);
-//         if other.end > self.end {
-//             self.start..other.end
-//         } else {
-//             std::cmp::max(self.start, other.end)..self.end
-//         }
-//     }
-// }
-
 fn range_remainder(this: &Range<i64>, other: &Range<i64>) -> Vec<Range<i64>> {
     // There are 6 cases to consider
-    dbg!(&this);
-    dbg!(&other);
 
     // 1. No overlap, other is less than this
     if other.end <= this.start {
-        println!("1. No overlap, other is less than this");
         return vec![this.clone()];
     }
 
     // 2. Overlap on the lower part of this
     if other.start <= this.start && other.end < this.end {
-        println!("2. Overlap on the lower part of this");
         return vec![{ other.end..this.end }];
     }
 
     // 3. Overlap in the middle of this, but on neither ends
     if other.start > this.start && other.end < this.end {
-        println!("3. Overlap in the middle of this, but on neither ends");
         return vec![{ this.start..other.start }, { other.end..this.end }];
     }
 
     // 4. Overlap in the upper part of this
     if other.start > this.start && other.end >= this.end {
-        println!("4. Overlap in the upper part of this");
         return vec![{ this.start..other.start }];
     }
 
     // 5. No overlap, other is greater than this
     if other.start >= this.end {
-        println!("5. No overlap, other is greater than this");
         return vec![this.clone()];
     }
 
     // 6. other completely overlaps this
     if other.start <= this.start && other.end >= this.end {
-        println!("6. other completely overlaps this");
         return vec![];
     }
 
@@ -94,28 +63,19 @@ fn range_remainder(this: &Range<i64>, other: &Range<i64>) -> Vec<Range<i64>> {
 
 #[derive(Debug, PartialEq)]
 struct MapEntry {
-    dst: i64,
-    src: i64,
-    range: i64,
-    src_range: Range<i64>,
+    src: Range<i64>,
     offset: i64,
 }
 
 impl From<&str> for MapEntry {
     fn from(line: &str) -> Self {
         let mut iter = line.trim().split_whitespace();
-        let dst = iter.next().unwrap().parse().unwrap();
-        let src = iter.next().unwrap().parse().unwrap();
-        let range = iter.next().unwrap().parse().unwrap();
-        let src_range = src..src + range;
-        let offset = dst - src;
-        MapEntry {
-            dst,
-            src,
-            range,
-            src_range,
-            offset,
-        }
+        let dst: i64 = iter.next().unwrap().parse().unwrap();
+        let src_start = iter.next().unwrap().parse().unwrap();
+        let range: i64 = iter.next().unwrap().parse().unwrap();
+        let src = src_start..src_start + range;
+        let offset = dst - src_start;
+        MapEntry { src, offset }
     }
 }
 
@@ -125,106 +85,50 @@ struct Alminac {
 }
 
 impl Alminac {
-    /// Transforms a single entry using the map.
-    fn lookup(&self, src: i64) -> i64 {
-        let Some(entry) = self
-            .map
-            .range((Bound::Unbounded, Bound::Included(src)))
-            .next_back()
-        else {
-            return src;
-        };
-        if entry.0 + entry.1.range >= src {
-            return entry.1.dst + (src - entry.0);
-        } else {
-            return src;
-        }
-    }
-
     /// Transforms a range of numbers into a collection of transformed ranges.
     fn lookup_range(&self, src: Range<i64>) -> Vec<Range<i64>> {
-        dbg!("START LOOKUP");
-        let mut remainder_ranges = vec![src.clone()];
-        let mut transformed_ranges = vec![];
+        let mut input_ranges = vec![src.clone()];
+        let mut output_ranges = vec![];
 
-        // Get all B-tree entries with src values up to and including the max number on our input range.
-        let potentially_applicable_ranges =
-            self.map.range((Bound::Unbounded, Bound::Excluded(src.end)));
+        // Get all B-tree entries with src ranges starting up to and including the end of our input range.
+        let map_entries = self.map.range((Bound::Unbounded, Bound::Excluded(src.end)));
 
         // For each potentially applicable range, find the intersection, and offset if needed.
-        while !remainder_ranges.is_empty() {
-            println!("START LOOP");
-            dbg!(&remainder_ranges);
-            dbg!(&transformed_ranges);
+        while !input_ranges.is_empty() {
+            let input = input_ranges.pop().unwrap();
 
-            if (remainder_ranges.len() > 10) || (transformed_ranges.len() > 10) {
-                panic!("infinte loop!");
-            }
-            let input = remainder_ranges.pop().unwrap();
-
-            let Some(transform) = potentially_applicable_ranges
-                .clone()
-                .find(|par| !input.intersection(&par.1.src_range).is_empty())
-            else {
-                println!(
-                    "No transformation are applicable, pushing untransformed range: {:?}",
-                    input
-                );
-                transformed_ranges.push(input);
-                break;
+            // This map entry does not transform the input.
+            // We'll use it as the default if there are no "real" transformations applicable.
+            let identity_map_entry = MapEntry {
+                src: input.clone(),
+                offset: 0,
             };
 
-            let applicable_range = input.intersection(&transform.1.src_range);
-            let transformed_range = applicable_range.offset(transform.1.offset);
+            // Find a transformation which applies to the input, if none, use the identity element.
+            let transform = map_entries
+                .clone()
+                .map(|kvp| kvp.1)
+                .find(|e| !input.intersection(&e.src).is_empty())
+                .unwrap_or(&identity_map_entry);
 
-            println!("transformation applicable:");
-            dbg!(&transform);
-            println!("applicable range:");
-            dbg!(&applicable_range);
-            println!("transformed range:");
-            dbg!(&transformed_range);
+            // Transform the input and push it to the output_ranges vec
+            output_ranges.push(input.intersection(&transform.src).offset(transform.offset));
 
-            transformed_ranges.push(transformed_range);
-
-            let remainders = range_remainder(&input, &transform.1.src_range);
-
-            println!("remaining range: {:?}", remainders);
-            for remainder in remainders {
-                if !remainder.is_empty() {
-                    remainder_ranges.push(remainder);
-                }
-            }
-
-            // for potential_transformation in potentially_applicable_ranges.clone() {
-            //     dbg!(&potential_transformation);
-            //     let applicable_range = input.intersection(&potential_transformation.1.src_range);
-            //     dbg!(&applicable_range);
-
-            //     if applicable_range.is_empty() {
-            //         dbg!("transformation not applicable");
-            //         continue;
-            //     }
-
-            //     dbg!("transformation applicable");
-            //     transformed_ranges.push(applicable_range.offset(potential_transformation.1.offset));
-            //     let remainder = input.remainder(&potential_transformation.1.src_range);
-
-            //     dbg!(&remainder);
-            //     if !remainder.is_empty() {
-            //         remainder_ranges.push(remainder);
-            //     }
-            // }
+            // If there are any leftover ranges which must be considered, put them into the input_ranges vec
+            input_ranges.extend(
+                range_remainder(&input, &transform.src)
+                    .into_iter()
+                    .filter(|r| !r.is_empty()),
+            );
         }
-
-        // We need to break apart the input range
-        return transformed_ranges;
+        return output_ranges;
     }
 }
 
 impl From<&str> for Alminac {
     fn from(lines: &str) -> Self {
         Alminac {
-            map: BTreeMap::from_iter(lines.lines().map(MapEntry::from).map(|e| (e.src, e))),
+            map: BTreeMap::from_iter(lines.lines().map(MapEntry::from).map(|e| (e.src.start, e))),
         }
     }
 }
@@ -232,7 +136,12 @@ impl From<&str> for Alminac {
 impl From<Vec<&str>> for Alminac {
     fn from(lines: Vec<&str>) -> Self {
         Alminac {
-            map: BTreeMap::from_iter(lines.into_iter().map(MapEntry::from).map(|e| (e.src, e))),
+            map: BTreeMap::from_iter(
+                lines
+                    .into_iter()
+                    .map(MapEntry::from)
+                    .map(|e| (e.src.start, e)),
+            ),
         }
     }
 }
@@ -254,14 +163,17 @@ impl Day05 {
         self.seeds
             .iter()
             .cloned()
-            .map(|s| self.seed_to_soil.lookup(s))
-            .map(|s| self.soil_to_fertilizer.lookup(s))
-            .map(|s| self.fertilizer_to_water.lookup(s))
-            .map(|s| self.water_to_light.lookup(s))
-            .map(|s| self.light_to_temperature.lookup(s))
-            .map(|s| self.temperature_to_humidity.lookup(s))
-            .map(|s| self.humidity_to_location.lookup(s))
+            .map(|s| (s..s + 1)) // We can use ranges to solve part 1!
+            .flat_map(|r| self.seed_to_soil.lookup_range(r))
+            .flat_map(|r| self.soil_to_fertilizer.lookup_range(r))
+            .flat_map(|r| self.fertilizer_to_water.lookup_range(r))
+            .flat_map(|r| self.water_to_light.lookup_range(r))
+            .flat_map(|r| self.light_to_temperature.lookup_range(r))
+            .flat_map(|r| self.temperature_to_humidity.lookup_range(r))
+            .flat_map(|r| self.humidity_to_location.lookup_range(r))
+            .map(Range::min)
             .min()
+            .unwrap()
             .unwrap()
     }
 
@@ -339,16 +251,6 @@ impl From<String> for Day05 {
         let humidity_to_location =
             Alminac::from(lines.by_ref().take_while(|l| *l != "").collect::<Vec<_>>());
 
-        // dbg!(&seeds);
-        // dbg!(&seed_ranges);
-        // dbg!(&seed_to_soil);
-        // dbg!(&soil_to_fertilizer);
-        // dbg!(&fertilizer_to_water);
-        // dbg!(&water_to_light);
-        // dbg!(&light_to_temperature);
-        // dbg!(&temperature_to_humidity);
-        // dbg!(&humidity_to_location);
-
         Day05 {
             seeds,
             seed_ranges,
@@ -381,10 +283,7 @@ mod tests {
         assert_eq!(
             entry,
             MapEntry {
-                dst: 100,
-                src: 200,
-                range: 25,
-                src_range: 200..225,
+                src: 200..225,
                 offset: -100,
             }
         );
@@ -462,12 +361,12 @@ mod tests {
         assert_eq!(solver.solve().unwrap(), crate::Solution::Integer(35, 46));
     }
 
-    // #[test]
-    // fn file_input() {
-    //     let mut solver: Day05 = std::fs::read_to_string("05/input").unwrap().into();
-    //     assert_eq!(
-    //         solver.solve().unwrap(),
-    //         crate::Solution::Integer(825516882, 136096660)
-    //     );
-    // }
+    #[test]
+    fn file_input() {
+        let mut solver: Day05 = std::fs::read_to_string("05/input").unwrap().into();
+        assert_eq!(
+            solver.solve().unwrap(),
+            crate::Solution::Integer(825516882, 136096660)
+        );
+    }
 }
