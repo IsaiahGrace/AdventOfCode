@@ -4,6 +4,7 @@ mod day03;
 mod day04;
 mod day05;
 mod day06;
+mod day07;
 mod puzzle;
 
 use crate::day01::Day01;
@@ -12,6 +13,7 @@ use crate::day03::Day03;
 use crate::day04::Day04;
 use crate::day05::Day05;
 use crate::day06::Day06;
+use crate::day07::Day07;
 use crate::puzzle::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -38,6 +40,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "04" => Box::new(Day04::from(input)),
         "05" => Box::new(Day05::from(input)),
         "06" => Box::new(Day06::from(input)),
+        "07" => Box::new(Day07::from(input)),
         _ => return Err("Day given is not implemented.".into()),
     };
 
