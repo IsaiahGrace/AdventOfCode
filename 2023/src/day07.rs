@@ -56,6 +56,7 @@ impl HandType {
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 enum Card {
+    Joker,
     Two,
     Three,
     Four,
@@ -146,6 +147,15 @@ impl Hand {
             hand_type: HandType::new(cards_str, regex),
         }
     }
+
+    fn assign_p2_hand_type(self: &mut Self) {
+        for card in &mut self.cards {
+            if *card == Card::Jack {
+                *card = Card::Joker;
+            }
+            // TODO: Do some magic here to re-score the hands. I really don't know how to begin...
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -170,8 +180,11 @@ impl Day07 {
             .sum()
     }
 
-    fn solve_p2(&self) -> i64 {
-        0
+    fn solve_p2(&mut self) -> i64 {
+        for hand in &mut self.hands {
+            hand.assign_p2_hand_type();
+        }
+        self.solve_p1()
     }
 }
 
@@ -270,7 +283,10 @@ mod tests {
     #[test]
     fn file_01() {
         let mut solver: Day07 = std::fs::read_to_string("07/01").unwrap().into();
-        assert_eq!(solver.solve().unwrap(), crate::Solution::Integer(6440, 0));
+        assert_eq!(
+            solver.solve().unwrap(),
+            crate::Solution::Integer(6440, 5905)
+        );
     }
 
     #[test]
