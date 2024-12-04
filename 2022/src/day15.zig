@@ -142,7 +142,7 @@ const Cave = struct {
         // What we can do is create (numCPU - 1) equal slices, and then assign the THIS thread to the remaining area.
         const sliceHeight: i64 = try std.math.divFloor(i64, (upperLimit.y - lowerLimit.y), @as(i64, @intCast(numCPUs - 1)));
 
-        var threads = try allocator.alloc(std.Thread, numCPUs - 1);
+        const threads = try allocator.alloc(std.Thread, numCPUs - 1);
         defer allocator.free(threads);
 
         var pos: ?Pos = null;

@@ -19,7 +19,7 @@ const File = struct {
 };
 
 pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
-    var root = try initRoot(allocator, input);
+    const root = try initRoot(allocator, input);
     defer allocator.destroy(root);
     defer deinitDir(allocator, root);
 

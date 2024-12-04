@@ -21,7 +21,7 @@ const Monkey = struct {
 };
 
 pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
-    var monkeysP1 = try parseMonkeys(allocator, input);
+    const monkeysP1 = try parseMonkeys(allocator, input);
     defer {
         for (monkeysP1) |*monkey|
             monkey.items.deinit();
@@ -29,7 +29,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     }
     const part1 = try solveP1(monkeysP1);
 
-    var monkeysP2 = try parseMonkeys(allocator, input);
+    const monkeysP2 = try parseMonkeys(allocator, input);
     defer {
         for (monkeysP2) |*monkey|
             monkey.items.deinit();

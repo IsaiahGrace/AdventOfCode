@@ -26,7 +26,7 @@ const Graph = struct {
 };
 
 pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
-    var graph: Graph = try parseGraph(allocator, input);
+    const graph: Graph = try parseGraph(allocator, input);
     defer {
         for (graph.nodes) |row| {
             allocator.free(row);

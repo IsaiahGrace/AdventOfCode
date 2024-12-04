@@ -15,7 +15,7 @@ const Pair = struct {
 const Signal = std.ArrayList(Pair);
 
 pub fn solve(allocator: std.mem.Allocator, input: []const u8) ![2]u64 {
-    var signal = try parseSignal(allocator, input);
+    const signal = try parseSignal(allocator, input);
     defer deinitSignal(signal);
 
     const part1 = try solveP1(allocator, signal);
@@ -178,7 +178,7 @@ fn parsePacketList(allocator: std.mem.Allocator, packet: []const u8) anyerror!Pa
             '0'...'9' => {
                 var end: usize = i;
                 while (packet[end] >= '0' and packet[end] <= '9') : (end += 1) {}
-                var newItem: u32 = try std.fmt.parseUnsigned(u32, packet[i..end], 10);
+                const newItem: u32 = try std.fmt.parseUnsigned(u32, packet[i..end], 10);
                 try packetList.append(Value{ .item = newItem });
                 i = end - 1;
             },

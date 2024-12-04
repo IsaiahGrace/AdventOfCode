@@ -19,7 +19,7 @@ const ScreenBuffer = struct {
     fn drawPixel(self: *Self, clk: u32, x: i32) void {
         const clkRow = ((clk - 1) / 40) % 6;
         const clkCol = (clk - 1) % 40;
-        var row = &self.rows[clkRow];
+        const row = &self.rows[clkRow];
         if (x == clkCol or (x + 1) == clkCol or (x - 1) == clkCol) {
             row.*[clkCol] = '#';
         }

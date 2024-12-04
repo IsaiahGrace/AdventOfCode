@@ -20,7 +20,7 @@ const Tree = struct {
 pub fn solve(allocator: std.mem.Allocator, input: []u8) ![2]u64 {
     const dimensions = findDimensions(input);
 
-    var forest: [][]Tree = try allocator.alloc([]Tree, dimensions[0]);
+    const forest: [][]Tree = try allocator.alloc([]Tree, dimensions[0]);
     defer allocator.free(forest);
 
     for (forest) |*row| {
