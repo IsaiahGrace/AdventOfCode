@@ -1,7 +1,7 @@
 const std = @import("std");
 const pc = @import("puzzleContext.zig");
 
-const AtomicBool = std.atomic.Atomic(bool);
+const AtomicBool = std.atomic.Value(bool);
 
 const Tile = enum {
     Empty,
@@ -85,7 +85,7 @@ const Cave = struct {
     /// This function returns a number of +x units that can safely be traversed before an unknown tile might be encountered
     fn traverseSensorX(self: *const Self, pos: Pos) i64 {
         if (self.getSensorInRange(pos)) |s| {
-            const dy = std.math.absInt(pos.y - s.pos.y) catch unreachable;
+            const dy: i64 = @intCast(@abs(pos.y - s.pos.y));
             const dx = pos.x - s.pos.x;
             return s.distToBeacon - dy - dx + 1;
         } else {
@@ -127,7 +127,7 @@ const Cave = struct {
                     return pos;
                 }
             }
-            if (exitEarly.load(.Unordered)) return null;
+            if (exitEarly.load(.unordered)) return null;
             pos.x = lowerLimit.x;
         }
         return null;
@@ -186,7 +186,7 @@ fn threadWorker(cave: *const Cave, lowerLimit: Pos, upperLimit: Pos, unknownPos:
     // The puzzle is only valid if there is one unknownPos, so this isn't a data saftey issue.
     if (cave.scanForUnknown(lowerLimit, upperLimit, exitEarly)) |p| {
         unknownPos.* = p;
-        exitEarly.store(true, .Unordered);
+        exitEarly.store(true, .unordered);
     }
 }
 

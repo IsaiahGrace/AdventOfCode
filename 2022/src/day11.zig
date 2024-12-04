@@ -130,7 +130,7 @@ fn parseMonkey(allocator: std.mem.Allocator, input: []const u8) !Monkey {
     _ = monkeyLine;
 
     const itemLine = lines.next().?;
-    var itemTokens = std.mem.tokenizeSequence(u8, itemLine, ":,");
+    var itemTokens = std.mem.tokenizeAny(u8, itemLine, ":,");
     _ = itemTokens.next().?;
     while (itemTokens.next()) |item| {
         const trimmedItem = std.mem.trim(u8, item, " ");

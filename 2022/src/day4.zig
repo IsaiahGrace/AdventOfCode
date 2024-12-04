@@ -70,10 +70,10 @@ fn findIntersections(set1: []const u8, set2: []const u8) !intersectionType {
 }
 
 test "findIntersections" {
-    try std.testing.expectEqual(try findIntersections("2-4", "6-8"), .{ .fullyContains = false, .overlaps = false });
-    try std.testing.expectEqual(try findIntersections("2-3", "4-5"), .{ .fullyContains = false, .overlaps = false });
-    try std.testing.expectEqual(try findIntersections("5-7", "7-9"), .{ .fullyContains = false, .overlaps = true });
-    try std.testing.expectEqual(try findIntersections("2-8", "3-7"), .{ .fullyContains = true, .overlaps = true });
-    try std.testing.expectEqual(try findIntersections("6-6", "4-6"), .{ .fullyContains = true, .overlaps = true });
-    try std.testing.expectEqual(try findIntersections("2-6", "4-8"), .{ .fullyContains = false, .overlaps = true });
+    try std.testing.expectEqual(try findIntersections("2-4", "6-8"), intersectionType{ .fullyContains = false, .overlaps = false });
+    try std.testing.expectEqual(try findIntersections("2-3", "4-5"), intersectionType{ .fullyContains = false, .overlaps = false });
+    try std.testing.expectEqual(try findIntersections("5-7", "7-9"), intersectionType{ .fullyContains = false, .overlaps = true });
+    try std.testing.expectEqual(try findIntersections("2-8", "3-7"), intersectionType{ .fullyContains = true, .overlaps = true });
+    try std.testing.expectEqual(try findIntersections("6-6", "4-6"), intersectionType{ .fullyContains = true, .overlaps = true });
+    try std.testing.expectEqual(try findIntersections("2-6", "4-8"), intersectionType{ .fullyContains = false, .overlaps = true });
 }
