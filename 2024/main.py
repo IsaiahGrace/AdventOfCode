@@ -59,7 +59,7 @@ def main(args):
         print(solution)
 
     if arg == "input" and day in answers.answers:
-        assert solution == answers.answers[day]
+        assert solution == answers.answers[day], f"solution:\n{solution}\nanswer:\n{answers.answers[day]}"
 
 
 if __name__ == "__main__":
