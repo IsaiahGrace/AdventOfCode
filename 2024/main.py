@@ -1,4 +1,5 @@
 from rich import print
+import answers
 import importlib
 import os
 import re
@@ -56,6 +57,9 @@ def main(args):
         print(file)
         solution = days[day].solve(puzzle)
         print(solution)
+
+    if arg == "input" and day in answers.answers:
+        assert solution == answers.answers[day]
 
 
 if __name__ == "__main__":

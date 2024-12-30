@@ -13,5 +13,11 @@ def solve(puzzle):
     left.sort()
     right.sort()
 
-    distances = sum(abs(l - r) for l, r in zip(left, right))
-    return distances
+    part1 = sum(abs(l - r) for l, r in zip(left, right))
+
+    freq = dict()
+    for n in right:
+        freq[n] = freq.get(n, 0) + 1
+
+    part2 = sum(n * freq.get(n, 0) for n in left)
+    return (part1, part2)
